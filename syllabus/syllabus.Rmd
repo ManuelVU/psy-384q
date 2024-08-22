@@ -63,25 +63,26 @@ knitr::opts_chunk$set(echo = TRUE)
   Office Hours:
 </h4>
 <p class="description-section">
-  Tuesdays 3:00 pm - 4:00 pm in SEA 5.230. You can also email me to schedule an appointment. 
+  Tuesdays 3:00 pm - 4:00 pm in SEA 5.230. You can also email me to schedule an
+  appointment. 
 </p>
 
 <h4>
   Materials:
 </h4>
 <p class="description-section">
-  In addition to whatever you use to take notes, you will need to bring a laptop with R/Rstudio 
-  installed to complete and submit in-class activities.
+  In addition to whatever you use to take notes, you will need to bring a laptop
+  with R/Rstudio installed to complete and submit in-class activities.
 </p>
 
 <h4>
 Textbook:
 </h4>
 <p class="description-section">
-  There is no required textbook for this class. We will primarily be using lectures and 
-  and RMarkdown files for in class case studies and homework problems, all of which will be 
-  provided via Canvas.
-  Some supplementaty resources are:
+  There is no required textbook for this class. We will primarily be using
+  lectures and and RMarkdown files for in class case studies and homework
+  problems, all of which will be provided via Canvas. Some supplementary
+  resources are:
   <ul>
     <li>
       Alan Agresti (2012). Categorical Data Analysis. *Third edition*.
@@ -93,22 +94,24 @@ Textbook:
   Assignments:
 </h4>
 <p class="description-section">
-  There are two type of assignments for this clase, the first one is take home case studies, 
-  and the second one is a final project. Take home case studies will be in the form of an 
-  RMarkdown file that describes a problem. The objective will be for you to find a way to 
-  answer the posed problem using the methods seen in class, and write the results in a format
-  that resembles the "Results" section of a paper.
+  There are two type of assignments for this class, the first one is take home
+  case studies, and the second one is a final project. Take home case studies
+  will be in the form of an RMarkdown file that describes a problem. The 
+  objective will be for you to find a way to answer the posed problem using the
+  methods seen in class, and write the results in a format that resembles the
+  "Results" section of a paper.
 </p>
 
 <h4>
   Grades:
 </h4>
 <p class="description-section">
-  Grades will be based on three components: in class participantion (completion of
-  in-class case studies), homework case studies, and final project, with a weight of 20, 45, and 
-  35% respectively. For the determination of letter grades at the end of the class, I will use 
-  my predecessor’s graduate class grading scale: A=80+, B=60-79.99, C=59.99-and-below. 
-  The graduate school now uses +/- designations in addition to simple letter grades:
+  Grades will be based on three components: in class participation (completion 
+  of in-class case studies), homeworks (no more than 6 applications to case 
+  studies), and final project, with a weight of 20, 45, and 35% respectively. 
+  For the determination of letter grades at the end of the class, I will use my 
+  predecessor’s graduate class grading scale: A=80+, B=60-79.99, C=59.99-and-below. 
+  The graduate school  now uses +/- designations in addition to simple letter grades:
   <ul>
     <li>
       a "+" is earned for a final grade in the upper third of the interval.
@@ -120,7 +123,6 @@ Textbook:
       a "-" for a final grade in the lower third of the interval.
     </li>
   </ul>
-
   **Note:** the graduate school does not allow an A+ designation.
 </p>
 
@@ -128,14 +130,70 @@ Textbook:
   A University-wide note:
 </h4>
 <p class="description-section">
-  The University of Texas at Austin provides upon request appropriate academic accommodations 
-  for qualified students with disabilities.
-  For more information visit: https://diversity.utexas.edu/disability/
+  The University of Texas at Austin provides upon request appropriate academic
+  accommodations for qualified students with disabilities. For more information
+  visit: https://diversity.utexas.edu/disability/
 </p>
 
-<h4>
+<h4 style="margin-bottom: 0.5cm;">
   Class topics (subject to change):
 </h4>
-<p, class="description-section">
-  
+<p>
+  Linear models (Review):
+  <ol type="i">
+    <li>
+      Simple linear regression
+    </li>
+    <li>
+      Multivariate linear regression
+    </li>
+    <li>
+      General linear model (change of basis functions)
+    </li>
+  </ol>
+  Robust Regression Models
+  <ol type="i">
+    <li>
+      Robust variance estimation
+    </li>
+    <li>
+      Quantile regression (loss functions)
+    </li>
+    <li>
+      Introduction to splines
+    </li>
+  </ol>
+  Generalized Linear Models
+  <ol type="i">
+    <li>
+      Introduction to GLM with count data
+    </li>
+    <li>
+      Iteratively Re-weighted Least Squares estimation
+    </li>
+    <li>
+      The Poisson model
+    </li>
+    <li>
+      The Binomial model
+    </li>
+    <li>
+      Link functions
+    </li>
+  </ol>
+  Maximum Likelihood Estimation (custom models)
+  <ol>
+    <li>
+      Introduction to MLE's (the normal model)
+    </li>
+    <li>
+      The binomial model (example with exponential decay)
+    </li>
+    <li>
+      Inference with MLE's and parameter transformations
+    </li>
+    <li>
+      Custom likelihood functions in R/Rstudio
+    </li>
+  </ol>
 </p>
