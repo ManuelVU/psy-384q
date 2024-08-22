@@ -3,6 +3,8 @@ title: ""
 output:
   html_document:
     css: "syllabus.css"
+params:
+  lang: en
 ---
 
 ```{r setup, include=FALSE}
