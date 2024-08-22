@@ -9,7 +9,10 @@ h2{
 }
 
 h4{
-    background-color: skyblue;
+    background-color: aliceblue;
+    padding-bottom: 0.1cm;
+    width: fit-content;
+    font-weight: bold;
 }
    
 .info-general{

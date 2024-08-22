@@ -24,6 +24,7 @@ knitr::opts_chunk$set(echo = TRUE)
 <p class="info-general">
   **Instructor:** Manuel Villarreal
 </p>
+
 <p class="info-general">
   **Contact:** <br>
   <ul>
@@ -36,9 +37,13 @@ knitr::opts_chunk$set(echo = TRUE)
 </ul>
 </p>
 
-<h3>
-Course Purpose:
-</h3>
+<h4>
+  Course Purpose:
+</h4>
+
+<p>
+  The purpose of this course is to introduce students to the applications of some advanced statistical techniques.
+</p>
 
 
 
