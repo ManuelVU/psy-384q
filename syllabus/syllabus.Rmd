@@ -10,23 +10,35 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 <h2 style="text-align: center;" class="info-general">
-PSY 384 Q : Advanced Applied Statistics I
+  PSY 384 Q : Advanced Applied Statistics I
 </h2>
+
+<p class="info-general">
+  **Class Location:** SEA 3.250
+</p>
   
 <p class="info-general">
-**Instructor:** Manuel Villarreal
-</p>
-<p class="info-general">
-**Class hours:** Mondays and Wednesdays from 10:00 am to 11:30 am
-</p>
-<p class="info-general">
-**Office:** 5.230
-</p>
-<p class="info-general">
-**email:** jesusmvu@utexas.edu
+  **Class Time:** Mondays and Wednesdays 10:00 am - 11:30 am
 </p>
 
+<p class="info-general">
+  **Instructor:** Manuel Villarreal
+</p>
+<p class="info-general">
+  **Contact:** <br>
+  <ul>
+    <li>
+      Office: SEA 5.230
+    </li>
+    <li>
+      email: jesusmvu@utexas.edu
+    </li>
+</ul>
+</p>
 
+<h3>
+Course Purpose:
+</h3>
 
 
 

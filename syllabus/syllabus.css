@@ -5,9 +5,13 @@ body{
 }
   
 h2{
-    padding-bottom: 1cm;
+    padding-bottom: 0.7cm;
+}
+
+h4{
+    background-color: skyblue;
 }
    
 .info-general{
-    margin-bottom: 0.5cm;
+    margin-bottom: 0.25cm;
 }
