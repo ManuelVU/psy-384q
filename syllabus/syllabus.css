@@ -10,11 +10,16 @@ h2{
 
 h4{
     background-color: aliceblue;
-    padding-bottom: 0.1cm;
+    padding-bottom: 0cm;
     width: fit-content;
     font-weight: bold;
+    margin-bottom: -0.05cm;
 }
    
 .info-general{
     margin-bottom: 0.25cm;
+}
+
+.description-section{
+    margin-bottom: 0.5cm;
 }
