@@ -188,7 +188,7 @@ Textbook:
     </li>
   </ol>
   Maximum Likelihood Estimation (custom models)
-  <ol>
+  <ol type="i">
     <li>
       Introduction to MLE's (the normal model)
     </li>
