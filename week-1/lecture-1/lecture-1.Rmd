@@ -13,14 +13,16 @@ output:
       highlightStyle: github
       highlightLines: true
       ratio: 16:9
-      countIncrementalSlides: true
+      countIncrementalSlides: false
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo=FALSE}
 options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(
-  fig.width=9, fig.height=3.5, fig.retina=3,
-  out.width = "100%",
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
   cache = FALSE,
   echo = TRUE,
   message = FALSE, 
@@ -29,7 +31,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r xaringan-themer, include=FALSE, warning=FALSE}
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
 library(xaringanthemer)
 style_duo_accent(
   primary_color = "#005f86",
@@ -38,7 +40,7 @@ style_duo_accent(
 )
 ```
 
-```{r xaringan-extra, include=FALSE, warning=FALSE}
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
 xaringanExtra::use_tile_view()
 xaringanExtra::use_panelset()
 htmltools::tagList(
@@ -46,26 +48,286 @@ htmltools::tagList(
     button_text = "<i class=\"fa fa-clipboard\"></i>",
     success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
     error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
-  ),
-  rmarkdown::html_dependency_font_awesome())
+  ))
+rmarkdown::html_dependency_font_awesome()
 xaringanExtra::use_extra_styles(
   hover_code_line = TRUE,         
-  mute_unhighlighted_code = TRUE  
-)
+  mute_unhighlighted_code = TRUE)
 ```
 
-## Typography
-
-Text can be **bold**, _italic_, ~~strikethrough~~, or `inline code`.
-
-[Link to another slide](#colors).
-
-```{r mean-calc}
-y <- rnorm(n = 10, mean = 100, sd = 10)
-y_bar <- mean(y)
+```{r data-sim-example, echo = FALSE}
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
 ```
+
+### Blood pressure
+
+- Researchers at UT Austin want to study the relationship between systolic blood
+pressure and age. They design a study to measure the blood pressure of 200 
+individuals alongside other variables of interest.
+
+--
+
+- Let's first look at the data.
+
+---
+### Data: blood pressure
+
+```{r dtable, echo = FALSE}
+DT::datatable(
+  data = blood,
+  options = list(pageLength = 6), 
+  rownames = FALSE)
+```
+
+---
+### Data visualization
+.panelset[
+  .panel[.panel-name[blood pressure]
+```{r hist-bp, echo=FALSE}
+par(las = 1)
+hist(x = blood$blood_pressure, ann = FALSE, axes = FALSE,
+     border = "white", col = "#f8971f")
+axis(side = 1, cex.axis = 1.2)
+mtext(text = "Blood pressure", side = 1, cex = 1.7, line = 2.3)
+box(bty = "l")
+```
+  ]
+  .panel[.panel-name[Age]
+```{r hist-age, echo=FALSE}
+par(las = 1)
+hist(x = blood$age,
+     breaks = seq(from = min(blood$age), to = max(blood$age), by = 1),
+     ann = FALSE, axes = FALSE,
+     border = "white", col = "#005f86")
+axis(side = 1, cex.axis = 1.2)
+mtext(text = "Age", side = 1, cex = 1.7, line = 2.3)
+box(bty = "l")
+```
+  ]
+  .panel[.panel-name[Scatter plot]
+```{r scater-bp-age, echo=FALSE}
+par(las = 1)
+plot(x = blood$age, y = blood$blood_pressure, data = blood, 
+     ann = FALSE, axes = FALSE, col = "#00674f", pch = 19, cex = 1.4)
+box(bty = "l")
+axis(side = 1, cex.axis = 1.2)
+axis(side = 2, cex.axis = 1.2)
+mtext(text = "Blood pressure", side = 2, line = 2.8, cex = 1.7, las = 0)
+mtext(text = "Age", side = 1, line = 2.5, cex = 1.8)
+```
+  ]
+]
+
+---
+### Blood pressure vs age
+
+- From the scatter plot it seems like a linear function would be a good starting
+point to study the association between the variables of interest.
+
+--
+
+- The simple linear model can be expressed as: 
+$$Y_i = \beta_0 + \beta_1 X_{i1} + \epsilon_i$$
+---
+### Notation:
+
+$$Y_i = \beta_0 + \beta_1 X_{i1} + \epsilon_i$$
+
+  - $i = \{1, 2, \dots, n\}$ is an indicator variable for the observation 
+  number.
+  
+--
+
+  - $Y_i$ is the **i-th** observation or outcome.
+  
+--
+
+  - $X_{i1}$ is the predictor for the **i-th** observation.
+  
+--
+
+  - $\beta_0$ is the intercept or the expected value of the outcome variable
+  for an observation with a predictor with a value of 0.
+  
+--
+
+  - $\beta_1$ is the slope or the rate of change of the expected value of the 
+  outcome for a one unit difference in the predictor.
+  
+---
+### Linear regression
+
+- The simple linear model has two components:
+
+--
+
+  1. Systematic component (**aka** mean model) : $$\mu_i = \beta_0 + \beta_1 X_{i1}$$
+
+--
+
+  1. Random component (**aka** error term): $$\epsilon_i$$
+  
+--
+
+- For now we will assume that: $$\epsilon_i \overset{iid}{\sim} N(0,\sigma^2)$$
+
+--
+
+- This will make things easier for now, however, we will see that this 
+assumption can be bent a little.
+
+---
+### What now?
+
+- With our current specification we should be able to express a participant's
+blood pressure as: $$\text{blood pressure}_i = \beta_0 + \beta_1 \text{age}_{i} + \epsilon_i$$
+
+--
+
+- Notice that we don't know the values of $\beta_0$, $\beta_1$ or 
+$\epsilon_i$. If we had access to the entire population this would be easy, 
+we just need to measure everyone's blood pressure and age in order to find those
+values.
+
+--
+
+- This is very hard to do so instead of measuring the entire population we can
+try to estimate those unknown values known as *parameters* from a sample of the
+population instead.
+
+---
+### Parameter estimation
+
+- How can we estimate the parameters of a model?
+
+--
+
+- We can think of estimation as a decision problem were we want to choose one 
+or more values from a set of candidates. 
+
+--
+
+- For example, we could start by guessing that the values could be:
+
+$\beta_0 = 100, \quad \beta_1 = 0.5, \quad \sigma^2 = 2$
+
+--
+
+- We can compare this first attempt with our data
+
+---
+### Example line
+
+$$\mathrm{E}\left(\text{blood pressure}_i\right) = 100 + 1/2\ \text{age}_{i}$$
+
+```{r example-line, echo=FALSE}
+par(las = 1)
+plot(x = blood$age, y = blood$blood_pressure, data = blood, 
+     ann = FALSE, axes = FALSE, col = "white", bg = "#00674f",
+     pch = 21, cex = 1.6)
+curve(expr = 100 + 1/2 * x, from = min(blood$age), to = max(blood$age),
+      add = TRUE, col = "#005f86", lwd = 4, lty = 2)
+box(bty = "l")
+axis(side = 1, cex.axis = 1.2)
+axis(side = 2, cex.axis = 1.2)
+mtext(text = "Blood pressure", side = 2, line = 2.8, cex = 1.7, las = 0)
+mtext(text = "Age", side = 1, line = 2.5, cex = 1.8)
+```
+
+---
+## Example line
+
+- The previous plot showed us that a lot of our observations were above the line
+so what can we do next?
+
+--
+
+- We can frame the problem of estimating the parameters of a model as a decision
+problem!
+
+--
+
+- In this case, we want to find the values of the parameters that will let us 
+optimize some criterion or function, which will depend on our candidate values
+of each of the parameters in the model.
+
+--
+
+- We refer to these functions as **objective functions**.
+
+--
+
+**Note:** The derivative of these objective functions also has a name:
+**score function**
+
+---
+### Objective functions
+
+- There are many objective functions that we could choose from (eventually we 
+will use different ones during this course).
+
+--
+
+- For now we will use what is known as the Mean Squared Error as an objective 
+function.
+
+--
+
+- According to this criterion, we want to find the values of $\hat{\beta}_0$, 
+and $\hat{\beta}_1$ that minimize the MSE.
+
+$$\underset{\hat{\beta}_0, \hat{\beta}_1}{\operatorname{min}} = \frac{1}{n}\sum_{i = 1}^{n} \left(y_i - \hat{\beta}_0 - \hat{\beta}_1x_{i1}\right)^2$$
+
+--
+
+- This objective function has an intuitive interpretation and visualization.
+
+---
+### Visualization of MSE
+
+<iframe width="1200" height="470" src="https://www.geogebra.org/m/XUkhCJRj"></iframe>
+
+---
+### Solution: Normal equations
+
+- We call the solution to of the optimization problem the Ordinary Least Squares
+Estimators or **OLS** for short.
+
+--
+
+- The OLS for the simple linear regression can be expressed as:
+$$\hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x}_1$$
+$$\hat{\beta}_1 = \sum_{i = 1}^n \frac{(y_i - \bar{y})(x_{i1} - \bar{x}_1)}{(x_{i1}-\bar{x}_1)^2}$$
+
+---
+### Estimation of the variance
+
+- To estimate the variance we use the unbiased estimator which is:
+$$\hat{\sigma}^2 = \frac{1}{n-p} \sum_{i = 1}^n (y_i - \hat{\mu}_i)^2$$
+
+--
+
+- were $p$ is the number of "betas" in the model and 
+$$\hat{\mu}_i = \hat{\beta}_0 + \hat{\beta}_1x_{i1}$$
 
 ---
 class: center, middle, inverse
 
-# Thanks!
+## Now it's your turn!
+
