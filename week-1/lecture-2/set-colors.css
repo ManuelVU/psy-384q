@@ -1,0 +1,39 @@
+:root {
+  /* Fonts */
+  --text-font-family: 'Noto Sans';
+  --text-font-is-google: 1;
+  --text-font-family-fallback: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial;
+  --text-font-base: sans-serif;
+  --header-font-family: Cabin;
+  --header-font-is-google: 1;
+  --header-font-family-fallback: Georgia, serif;
+  --code-font-family: 'Source Code Pro';
+  --code-font-is-google: 1;
+  --base-font-size: 25px;
+  --text-font-size: 1rem;
+  --code-font-size: 0.9rem;
+  --code-inline-font-size: 1em;
+  --header-h1-font-size: 2.75rem;
+  --header-h2-font-size: 2.25rem;
+  --header-h3-font-size: 1.75rem;
+
+  /* Colors */
+  --text-color: #000000;
+  --header-color: #005f86;
+  --background-color: #FFFFFF;
+  --link-color: #005f86;
+  --text-bold-color: #005f86;
+  --code-highlight-color: rgba(0, 169, 183,0.5);
+  --inverse-text-color: #000000;
+  --inverse-background-color: #f8971f;
+  --inverse-header-color: #FFFFFF;
+  --inverse-link-color: #005f86;
+  --title-slide-background-color: #f8971f;
+  --title-slide-text-color: #FFFFFF;
+  --header-background-color: #005f86;
+  --header-background-text-color: #FFFFFF;
+  --primary: #005f86;
+  --secondary: #f8971f;
+  --white: #FFFFFF;
+  --black: #000000;
+}
