@@ -1,0 +1,394 @@
+---
+title: "Simple linear regression: assumptions"
+subtitle: "Lecture 2"  
+author: 
+  - "Manuel Villarreal"
+date: '08/28/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+```
+
+```{r data-sim-example, echo = FALSE}
+library(flipbookr)
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
+
+n <- dim(blood)[1]
+y_bar <- mean(blood$blood_pressure)
+x_bar <- mean(blood$age)
+s_xy <- sum(x = (blood$blood_pressure - y_bar) * (blood$age - x_bar))
+s_xx <- sum(x = (blood$age - x_bar)^2)
+hat_beta1 <- s_xy / s_xx
+hat_beta0 <- y_bar - hat_beta1 * x_bar
+hat_mu <- hat_beta0 + hat_beta1 * blood$age
+sse <- sum((blood$blood_pressure - hat_mu)^2)
+hat_sigma2 <- 1 / (n - 2) * sse
+```
+
+### OLS Estimators
+
+- From last class we know that the OLS estimators are the solution to our 
+decision problem in which we want to find candidate values for $\beta^*_0$ 
+and $\beta^*_1$ that minimize the distance between the "predicted" line 
+and our observations.
+
+--
+
+- In our blood pressure example, that means finding an estimate of the blood 
+pressure of a person that is "0 years old" ( $\beta_0$ ).
+
+--
+
+- Finding an estimate of the difference in blood pressure for people who are 
+one year of age apart ( $\beta_1$ ).
+
+--
+
+$$\hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x}_1$$ $$\hat{\beta}_1 =  \frac{\sum_{i = 1}^n(y_i - \bar{y})(x_{i1} - \bar{x}_1)}{\sum_{i = 1}^n(x_{i1}-\bar{x}_1)^2}$$
+
+---
+
+### Assumptions
+
+In classical linear regression there are 5 assumptions that allow us to make
+inferences about the values of the parameters in the model using the "classical"
+approach without worries.
+
+--
+
+1. Errors are centered around 0: $\mathrm{E}(\epsilon_i) = 0$.
+--
+
+1. Constant variance: $\mathrm{V}ar(\epsilon_i) = \sigma^2\ \text{for all}\ i = 1, 2, \dots, n$
+--
+
+1. Independence of errors: $\epsilon_1, \epsilon_2, \dots, \epsilon_n$.
+--
+
+1. Identically distributed errors: $\epsilon_i \sim \left(0, \sigma^2\right)$
+
+--
+
+Additionally, for now we will assume:
+
+- Normally distributed errors: $\epsilon_i \overset{iid}{\sim} Normal\left(0, \sigma^2\right)$
+
+---
+### What does this mean?
+
+Some consequences of these assumptions are that:
+
+--
+
+1. $\mathrm{E} \left(Y_i \mid X_i \right) = \beta_0 + \beta_1X_{i}$
+--
+
+1. $\mathrm{V}ar\left(Y_i \mid X_i \right) = \mathrm{V}ar\left(\epsilon_i\right) = \sigma^2$
+--
+
+1. The OLS estimators $\hat{\beta}_0$ and $\hat{\beta}_1$ are optimal.
+
+--
+
+Now, if we have 
+$\epsilon_i \overset{iid}{\sim} Normal\left(0, \sigma^2\right)$
+Then we know that:
+$$\hat{\beta}_0 \sim N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \sim N\left(\beta_1,\ \frac{\sigma^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
+
+---
+### What happens if we loose the normality assumption?
+
+As long as our errors $\epsilon_i$ have an expectation equal to 0 
+(**assumption 1**), constant variance (**assumption 2**), are 
+independent (**assumption 3**), and are identically distributed 
+(**assumption 4**).
+
+--
+
+Then by the Central Limit Theorem (**aka CLT**) we have that:
+$$\hat{\beta}_0 \overset{\bullet}{\sim} N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \overset{\bullet}{\sim} N\left(\beta_1,\ \frac{\sigma^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
+
+--
+
+- This means that our estimates follow **approximately** a Normal 
+distribution. In other words, although our confidence intervals might not have
+the correct length or our **p-values** will not be exactly right, they will 
+be **pretty close!**
+
+---
+class: middle, center, inverse
+
+### Let's do a simulation study!
+
+Open a new R file on your project and we will do this one together.
+
+---
+### How do we test the model assumptions?
+
+- The short answer is... we can't, however, we can use visualization methods 
+that will indicate to us if something is wrong.
+
+--
+
+- First we will need to calculate the model errors which can be obtained with
+the following function:
+$$\hat{\epsilon}_i = y_i - \hat{\mu}_i$$
+
+--
+
+- These errors are known as **residuals** and we can use them to visually 
+inspect if the assumptions of the model are "correct".
+
+--
+
+- We will go back to our blood pressure example, were we defined the model:
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age}_i + \epsilon_i \quad and \quad \hat{\mu}_i = \hat{\beta}_0 + \hat{\beta}_1 \text{age}_i$$
+
+---
+### Resdual plots
+
+- The histogram should be approximately centered at zero and symmetric.
+
+--
+
+- A qq-plot is a particular class of scatter plots which takes the sampled 
+quantiles of our observations and compares them to the theoretical quantiles 
+of a distribution, in this case the standard normal.
+
+--
+
+- We use scatter plots to compare the residuals across different independent 
+variables, for example the observation number (order).
+
+--
+
+- Auto-correlation plots to check that there is no correlation between our 
+variables across time, for example that the residual $n$ is not  correlated to 
+$n+1$.
+
+--
+
+- All these methods could allow us to evaluate if the **simple linear model** is 
+a good approach to the data that we have.
+
+---
+### Residual histogram
+
+.pull-left[
+```{r residual-hist, eval = FALSE}
+# calculate the expected valueK hat_mu 
+hat_mu <- hat_beta0 + hat_beta1 * blood$age
+
+# calculate the residuals
+hat_epsilon <- blood$blood_pressure - hat_mu
+
+# Then we can draw the histogram
+hist(x = hat_epsilon, breaks = n/10,
+     axes = FALSE, ann = FALSE, freq = FALSE,
+     border = "white", col = "#f8971f")
+abline(v = mean(hat_epsilon), lty = 2, lwd = 3,
+       col = "#005f86")
+box(bty = "l")
+axis(side = 1, cex.axis = 1.5)
+mtext(side = 1, cex = 2, line = 3,
+      text = expression(
+        x = paste("Residuals: ",
+                  hat(epsilon)[i])))
+curve(dnorm(x, mean = 0, sd = sqrt(hat_sigma2)),
+      from = -12, to = 12, n = 100, add = TRUE)
+```
+]
+
+.pull-right[
+```{r residual-hist-out, ref.label = "residual-hist", fig.align = 'center', echo = FALSE, fig.height = 6}
+
+```
+]
+
+---
+### Residual qq-plot
+
+.pull-left[
+```{r residual-qq, eval = FALSE}
+# draw a quantile-quantile plot 
+# using the normal distribution
+qqnorm(y = hat_epsilon, pch = 21, 
+       col = "white", bg = "#f8971f",
+       cex = 2, las = 1, axes = FALSE,
+       ann = FALSE)
+
+# add a comparison line
+qqline(y = hat_epsilon, lwd = 3, lty = 2,
+       col = "#005f86")
+
+# editing plot
+box(bty = "l")
+axis(side = 1, cex.axis = 1.2)
+axis(side = 2, las = 2, cex.axis = 1.2)
+mtext(text = "Threoretical quantiles",
+      line = 3, cex = 2, side = 1)
+mtext(text = "Sample quantiles",
+      line = 2.5, cex = 2, side = 2)
+```
+]
+
+.pull-right[
+```{r residual-qq-out, ref.label = "residual-qq", fig.align = 'center', echo = FALSE, fig.height = 6}
+
+```
+]
+
+---
+### Residual scatter plot (vs order)
+
+.pull-left[
+```{r residual-order, eval = FALSE}
+# Plot residual against
+# its corresponding id (order)
+plot(x = blood$id, y = hat_epsilon, ann = FALSE, 
+     axes = FALSE, cex = 2, pch = 21,
+     col = "white", bg = "#f8971f")
+box(bty = "l")
+axis(side = 1, cex.axis = 1.5)
+axis(side = 2, cex.axis = 1.5, las = 2)
+mtext(text = "Residuals", side = 2, line = 2.5,
+      cex = 2)
+mtext(text = "Id", side = 1, line = 3,
+      cex = 2)
+
+# what should we expect?
+abline(h = 0, col = "#005f86", lty = 4, 
+       lwd = 3.5)
+```
+]
+
+.pull-right[
+```{r residual-order-out, ref.label = "residual-order", fig.align = 'center', echo = FALSE, fig.height = 6}
+
+```
+]
+
+---
+### Residual scatter plot (vs sex)
+
+.pull-left[
+```{r residual-sex, eval = FALSE}
+# transform sex to a numeric variable
+sex_id <- as.numeric(x = blood$sex == "female")
+
+# Plot residual against the new variable
+plot(x = jitter(x = sex_id, amount = 0.4),
+  y = hat_epsilon, ann = FALSE, axes = FALSE,
+  cex = 2, pch = 21, col = "white", 
+  bg = ifelse(test = blood$sex == "female", 
+              yes = "#f8971f", no = "#005f86"))
+box(bty = "l")
+axis(side = 1, cex.axis = 1.5, at = c(0, 1),
+     labels = c("male", "female"))
+axis(side = 2, cex.axis = 1.5, las = 2)
+mtext(text = "Residuals", side = 2, line = 2.5,
+      cex = 2)
+mtext(text = "Sex", side = 1, line = 3, cex = 2)
+
+# what should we expect?
+abline(h = 0, col = "#000000", lty = 4, lwd = 4)
+```
+]
+
+.pull-right[
+```{r residual-sex-out, ref.label = "residual-sex", fig.align = 'center', echo = FALSE, fig.height = 6}
+
+```
+]
+
+---
+### Residual's auto-correlation
+
+.pull-left[
+```{r residual-autocor, eval = FALSE}
+# We can use the function built in r
+acf(x = hat_epsilon, las = 1, lwd = 2,
+    main = "Series: residuals", 
+    ylab = "Auto-correlation", 
+    xlab = "Lag", cex.lab = 2, cex.main = 1.5,
+    cex.axis = 1.3)
+```
+
+- **Note:** The auto-correlation values rarely go under the line, this 
+means that there is a high level of autocorrelation across our observations at
+different "time" (in this case order) lags.
+]
+
+.pull-right[
+```{r residual-autocor-out, ref.label = "residual-autocor", fig.align = 'center', echo = FALSE, fig.height = 6}
+
+```
+]
+
+
+
+
+
+

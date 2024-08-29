@@ -1,0 +1,24 @@
+---
+title: 'Simulation: simple linear regression'
+author: "Manuel Villarreal"
+date: "2024-08-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Generate the needed variables for a simple linear regression model.
+
+1. Simulate $k = 20$ "experiments"  each with a sample size of 40, and save the
+parameter estimates of $\beta_0$, $\beta_1$, and $\sigma^2$.
+
+1. Plot the histogram of the estimated values of $\beta_0$ and overlay the 
+theoretical normal distribution.
+
+1. Plot the histogram of the estimated values of $\beta_1$ and overlay the 
+theoretical normal distribution.
+
+1. Increase the number of experiments to 200 on step two and repeat steps 
+from 2, 3, and 4.
