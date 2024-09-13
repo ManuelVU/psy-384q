@@ -1,0 +1,445 @@
+---
+title: "Multiple Linear Regression"
+subtitle: "Lecture 3"  
+author: 
+  - "Manuel Villarreal"
+date: '08/28/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+```
+
+```{r data-sim-example, echo = FALSE}
+library(flipbookr)
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
+
+n <- dim(blood)[1]
+y_bar <- mean(blood$blood_pressure)
+x_bar <- mean(blood$age)
+s_xy <- sum(x = (blood$blood_pressure - y_bar) * (blood$age - x_bar))
+s_xx <- sum(x = (blood$age - x_bar)^2)
+hat_beta1 <- s_xy / s_xx
+hat_beta0 <- y_bar - hat_beta1 * x_bar
+hat_mu <- hat_beta0 + hat_beta1 * blood$age
+sse <- sum((blood$blood_pressure - hat_mu)^2)
+hat_sigma2 <- 1 / (n - 2) * sse
+```
+
+### Recap
+
+- We wanted to study the "**linear**" association between age and participant's
+blood pressure.
+
+--
+
+- We implemented a simple linear regression of the form:
+$$\text{blood pressure}_i = \beta_0 + \beta_1 \text{age} + \epsilon_i$$
+
+--
+
+- And we assumed that $\epsilon_i \overset{iid}{\sim} N(0, \sigma^2)$.
+
+--
+
+- However, the residual $(\hat{\epsilon}_i)$ plots showed that a participant's 
+sex could be confounding the effects of age on blood pressure.
+
+--
+
+- In order to be able to make valid inferences first we need to **stratify** 
+our model to be able to account for the effect of sex on blood pressure.
+
+---
+### Multiple linear regression
+
+- A multiple linear regression model is an extension of the typical approach 
+were we add more than on predictor.
+
+--
+
+- For example, we might be interested in how **height** changes as a function of 
+age and socioeconomic status.
+
+--
+
+- Rent price of an apartment depending on how old it is, the number of rooms 
+it has, the squared footage, and the area it is located in.
+
+--
+
+- **Note** that the predictors that we use can be continuous or discrete. 
+Mathematically this will make no difference, however, our interpretation of
+the inferences we make will depend on the variable's level.
+
+---
+### Multiple linear regression
+
+We can expressed the multiple linear regression as:
+$$Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_p X_{ip} + \epsilon_i$$
+
+--
+
+- Where $X_{ip}$ is the value of the $p-th$ independent variable for the $i-th$
+participant.
+
+--
+
+- We can write the same equation in a different form:
+$$Y_i = \sum_{j = 0}^p \beta_j X_{ij} + \epsilon_i$$
+
+--
+
+- Notice that we still have a single error term. This means that we can keep our
+assumptions about the errors from the simple linear regression model.
+
+---
+### Additional assumptions
+
+- Now that we have multiple predictors in our model we have to add an extra 
+assumption about those predictors.
+
+--
+
+- The predictors or covariates $X_{ij}$ for $j = 1, \dots, p$ are linearly 
+independent.
+
+--
+
+- What does this mean? Well, that we can't express one of our predictors as a 
+linear function (like the multiple linear regression equation) of other
+predictors!
+
+--
+
+- When we have two or more independent variables that are not linearly 
+independent then we say that the variables are collinear.
+
+---
+### Collinearity
+
+- When the linear independence between predictors is not met, we will have 
+inaccurate estimates and inaccurate intervals for our parameters.
+
+--
+
+- Additionally, if the problem is bad enough we might not be able to obtain the 
+OLS estimators of our parameters.
+
+--
+
+- One way that we might use to check for collinearity problems is by calculating 
+the correlation between the predictors in the model.
+
+--
+
+```{r cor, echo=TRUE}
+r_age_height <- cor(x = blood$age, y = blood$height)
+```
+
+--
+
+- Notice that we can't get the correlation between a categorical variable like 
+sex and a numeric variable.
+
+---
+### Interpreting the coefficients
+
+- When we had a single independent variable in our model the interpretation of 
+the coefficient was straightforward. However, when we add a second independent 
+variable the way in which we interpret those values has to change.
+
+--
+
+- In general, for a linear model of the form:
+$$Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_p X_{ip} + \epsilon_i$$
+
+we say that:
+
+  - $\beta_j$ is the change in the expected value of $Y_i$ for a one
+  unit increase in the variable $X_j$ while holding all other variables constant.
+
+--
+
+- This last part (holding all other variables constant) means that the value of
+$\beta_j$ can only be interpreted as the change in expectation for participants
+who are similar on other variables except for a one unit difference in $X_j$.
+
+---
+### Interpreting the coefficients
+
+- When we have a mixture of both continuous and discrete independent variables
+something interesting happens. 
+
+--
+
+- From our example, let's say that we add the **sex** variable to our model that
+already includes age.
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age} + \beta_2 \text{sex} + 
+\epsilon_i$$
+
+--
+
+- Given that **sex** can only take two values in our data base, R will interpret
+one of those values as a 1 and the other as a 0. Generating what we refer to as 
+a **base-line** group.
+
+--
+
+- For example, if female is assigned the value of 0 then $\beta_0$ can be 
+interpreted as the expected blood pressure of a female who is 0 years old
+
+---
+### Interpreting the coefficients
+
+- On the other hand, $\beta_0 + \beta_2$ can be interpreted as the expected 
+blood pressure of a male that is 0 years old. This means that $\beta_2$ is the
+difference between a male and a female participant who are 0 years old.
+
+--
+
+- In other words, because we added an independent variable that can only take
+two variables, we can visualize our multiple linear regression as two different
+lines, one for each value of our discrete independent variable.
+
+--
+
+- If we where to add a third discrete independent variable, then the 
+**base-line** group would be the combination of the two levels of our discrete
+variables that are assigned the value of 0.
+
+--
+
+- For example, if we added **socioeconomic status** as a predictor with 3 levels,
+low, medium and high, then $\beta_0$ would be interpreted as the expected blood 
+pressure of a female participant in the low socioeconomic status that is 
+0 years old.
+
+---
+### Ordinary Least Squares estimators
+
+- In comparison to the simple linear regression approach, finding the OLS 
+estimators is more difficult, and requires understanding of linear algebra 
+notation.
+
+--
+
+- Therefore, instead of calculating the estimates by solving the normal 
+equations we will use a solver already programmed in R.
+
+--
+
+- For a linear regression model we use the function `lm()`.
+
+---
+### Example SLR with `lm()`
+
+- Going back to our example, we can compare the values obtained using the `lm()`
+function with our estimate of the simple linear regression:
+
+--
+
+```{r lm-example, echo=TRUE}
+model_bp_age <- lm(formula = blood_pressure ~ age, data = blood)
+```
+
+--
+
+the estimated intercept using this function was $\hat{\beta}_0 =$ 
+`r round(model_bp_age$coefficients[1], 2)` and the estimate of the slope associated
+to age was $\hat{\beta}_1 =$ `r round(model_bp_age$coefficients[2], 2)`.
+
+--
+
+- When saved into an r object, the `lm()` function will return multiple values
+that can be useful, like the estimated coefficients (the OLS) and the 
+model residuals.
+
+---
+### Output of the `lm()` function
+
+- The output of the function will be saved in the form of a list. A list is an
+R object that can store multiple different objects like matrices, arrays, 
+vectors and scalars.
+
+--
+
+- To access a particular stored variable we can use the \$ sign after the name
+of the object and then the name of the variable we want to look at.
+
+--
+
+- For example, to access the estimated values of the parameters in the model 
+we can do call the `coefficients` variable stored in the list. If I saved the 
+output from the `lm()` function on an R object named `model_bp_age`, then:
+
+--
+
+```{r}
+model_bp_age$coefficients
+```
+
+
+prints the values of the OLS estimators of each parameter. 
+
+---
+### Output of the `lm()` function
+
+- This values will be stored in a vector format and therefore we can access to 
+each of them individually by using square brackets after "`coefficients`" and 
+then the index of the value we want to use.
+
+--
+
+- For example, `model_bp_age$coefficients[1]` will return the value of the 
+intercept, while `model_bp_age$coefficients[2]` will return the value of the
+slope associated to `age`.
+
+---
+### Residuals
+
+- The residuals are also stored and organized in a vector:
+
+```{r, eval=FALSE}
+model_bp_age$residuals
+```
+
+--
+
+```{r, echo=FALSE}
+DT::datatable(
+  data = data.frame("id" = seq(from = 1, to = 200), 
+                    "residuals" = round(model_bp_age$residuals, digits = 3)),
+  options = list(pageLength = 3), 
+  rownames = FALSE)
+```
+
+---
+### Output of the `lm()` function
+
+- Other useful value returned by the `lm()` function are the "fitted values"
+which are stored with the name `fitted`. These are the values of $\hat{\mu}_i$.
+
+--
+
+- We can also use other R functions like the `summary()` and `anova()` functions
+that take advantage of the output to do statistical significance tests .
+
+---
+### Model notation
+
+- The first argument of the `lm()` function will be the model's **formula**. 
+
+--
+  
+  - This argument can be entered two ways, by writing the name of a data frame 
+  followed by the dollar sign and the name of the variable we want to use, for
+  example:
+
+```{r, eval=FALSE}
+lm(formula = blood$blood_pressure ~ blood$age)
+```
+  
+--
+
+  - The second way is by using the **data** argument of the `lm()` function, 
+  this way we can just write the name of the variables of the data frame in the
+  formula section and then the name of the data frame for the data argument.
+  
+```{r, eval = FALSE}
+lm(formula = blood_pressure ~ age, data = blood)
+```
+
+---
+### Multiple linear regression
+
+- Like we mentioned at the start, a multiple linear regression is a linear 
+model where we have 2 or more independent variables and a single dependent 
+variable.
+
+--
+
+- For example, from our example using the blood pressure data, we noticed that 
+the sex variable was associated with our independent variable.
+
+--
+
+- Formally, we can express this new model as:
+$$\text{blodd pressure}_i = \beta_0 + \beta_1\text{age}_i + \beta_2\text{sex} + \epsilon_i$$
+
+--
+
+- We can estimate the parameters ( $\beta_0$, $\beta_1$, and $\beta_2$) of this 
+new model using the `lm()` function:
+
+```{r}
+bp_age_sex <- lm(formula = blood_pressure ~ age + sex, data = blood)
+```
+
+---
+
+class: middle, center, inverse
+
+### Now it's your turn!
+

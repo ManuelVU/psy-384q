@@ -1,0 +1,158 @@
+---
+title: "In class activity 4"
+author: ""
+date: "2024-09-11"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,  echo = FALSE}
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
+
+```
+
+1. Using the `lm()` function estimate the value of the parameters $\beta_0$, 
+$\beta_1$ and $\beta_2$ from the model:
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age}_i + \beta_2\text{sex}_i + \epsilon_i$$
+
+```{r}
+mbp <- lm(formula = blood_pressure ~ age + sex, data = blood)
+```
+
+The estimated value of $\hat\beta_0$ was `r round(x = mbp$coef[1], digits = 2)`
+
+The estimated value of $\hat\beta_1$ was `r round(x = mbp$coef[2], digits = 2)`
+
+The estimated value of $\hat\beta_2$ was `r round(x = mbp$coef[3], digits = 2)`
+
+
+1. Make a histogram of the residuals.
+
+```{r}
+hist(x = mbp$residuals, breaks = 40,
+     axes = FALSE, ann = FALSE, freq = FALSE,
+     border = "white", col = "#f8971f")
+abline(v = mean(mbp$residuals), lty = 2, lwd = 3,
+       col = "#005f86")
+box(bty = "l")
+axis(side = 1, cex.axis = 1.5)
+mtext(side = 1, cex = 2, line = 3,
+      text = expression(
+        x = paste("Residuals: ",
+                  hat(epsilon)[i])))
+```
+
+1. Make a scatter plot of the residuals as a function of id number.
+
+```{r}
+# Plot residual against
+# its corresponding id (order)
+plot(x = blood$id, y = mbp$residuals, ann = FALSE, 
+     axes = FALSE, cex = 2, pch = 21,
+     col = "white", bg = "#f8971f")
+box(bty = "l")
+axis(side = 1, cex.axis = 1.5)
+axis(side = 2, cex.axis = 1.5, las = 2)
+mtext(text = "Residuals", side = 2, line = 2.5,
+      cex = 2)
+mtext(text = "Id", side = 1, line = 3,
+      cex = 2)
+# what should we expect?
+abline(h = 0, col = "#005f86", lty = 4, 
+       lwd = 3.5)
+```
+
+1. Make a scatter plot of blood pressure by age and add the expected lines
+for male and female participants.
+
+```{r}
+plot(x = blood$age, y = blood$blood_pressure, 
+     pch = 21, col = "white", cex = 1.3, ann = FALSE, axes = FALSE,
+     bg = ifelse(test = blood$sex == "female",
+                 yes = "#ffa600",
+                 no = "#003f5c"))
+
+# adding details to the plot
+box(bty = "l")
+axis(side = 1)
+axis(side = 2, las = 2)
+mtext(text = "Age", side = 1, line = 2.3, cex = 1.7)
+mtext(text = "Blood pressure", side = 2, line = 2.8, cex = 1.7)
+
+curve(expr = mbp$coefficients[1] + mbp$coefficients[2] * x + mbp$coefficients[3], 
+      from = 38, to = 70, add = TRUE, 
+      lwd = 3, lty = 2, col = "#90d5ff")
+
+curve(expr = mbp$coefficients[1] + mbp$coefficients[2] * x, 
+      from = 38, to = 70, add = TRUE, 
+      lwd = 3, lty = 2, col = "#ff7c43")
+
+```
+
+```{r}
+plot(x = blood$age, y = blood$blood_pressure, 
+     pch = 21, col = "white", cex = 1.3, ann = FALSE, axes = FALSE,
+     bg = ifelse(test = blood$sex == "female",
+                 yes = "#ffa600",
+                 no = "#003f5c22"))
+
+# adding details to the plot
+box(bty = "l")
+axis(side = 1)
+axis(side = 2, las = 2)
+mtext(text = "Age", side = 1, line = 2.3, cex = 1.7)
+mtext(text = "Blood pressure", side = 2, line = 2.8, cex = 1.7)
+
+curve(expr = mbp$coefficients[1] + mbp$coefficients[2] * x + mbp$coefficients[3], 
+      from = 38, to = 70, add = TRUE, 
+      lwd = 3, lty = 2, col = "#90d5ff22")
+
+curve(expr = mbp$coefficients[1] + mbp$coefficients[2] * x, 
+      from = 38, to = 70, add = TRUE, 
+      lwd = 3, lty = 2, col = "#ff7c43")
+
+```
+
+```{r}
+plot(x = blood$age, y = blood$blood_pressure, 
+     pch = 21, col = "white", cex = 1.3, ann = FALSE, axes = FALSE,
+     bg = ifelse(test = blood$sex == "female",
+                 yes = "#ffa60077",
+                 no = "#003f5c"))
+
+# adding details to the plot
+box(bty = "l")
+axis(side = 1)
+axis(side = 2, las = 2)
+mtext(text = "Age", side = 1, line = 2.3, cex = 1.7)
+mtext(text = "Blood pressure", side = 2, line = 2.8, cex = 1.7)
+
+curve(expr = mbp$coefficients[1] + mbp$coefficients[2] * x + mbp$coefficients[3], 
+      from = 38, to = 70, add = TRUE, 
+      lwd = 3, lty = 2, col = "#90d5ff")
+
+curve(expr = mbp$coefficients[1] + mbp$coefficients[2] * x, 
+      from = 38, to = 70, add = TRUE, 
+      lwd = 3, lty = 2, col = "#ff7c4377")
+
+```
+

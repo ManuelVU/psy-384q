@@ -1,0 +1,32 @@
+---
+title: "In class activity 3"
+author: "Manuel Villarreal"
+date: "2024-09-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Using the blood pressure, data find the OLS estimators of $\beta_0$, $\beta_1$
+and $\sigma^2$ for the model:
+$$\text{blood pressure}_i = \beta_0 + \beta_1 \text{height}_i + \epsilon_i$$.
+
+1. Using the OLS from 1, calculate the expected blood pressure $\hat{\mu}_i$ for
+each participant.
+
+1. Use the expected value found in 2 ($\hat{\mu}_i$) to obtain the model 
+residuals $\hat{\epsilon}_i$. 
+
+1. What is the mean and variance of the residuals you found in 3?
+
+1. Draw a histogram of the residuals
+
+1. Draw a quantile-quantile plot of the residuals.
+
+1. Draw a scatter plot of the residuals and stratify them using the sex 
+variable. What can you see in the figure?
+
+1. Draw an auto-correlation plot of the residuals, what can you see in the 
+auto-correlation function.

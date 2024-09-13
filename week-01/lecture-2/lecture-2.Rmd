@@ -155,7 +155,7 @@ Some consequences of these assumptions are that:
 Now, if we have 
 $\epsilon_i \overset{iid}{\sim} Normal\left(0, \sigma^2\right)$
 Then we know that:
-$$\hat{\beta}_0 \sim N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \sim N\left(\beta_1,\ \frac{\sigma^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
+$$\hat{\beta}_0 \sim N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \sim N\left(\beta_1,\ \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
 
 ---
 ### What happens if we loose the normality assumption?
@@ -168,7 +168,7 @@ independent (**assumption 3**), and are identically distributed
 --
 
 Then by the Central Limit Theorem (**aka CLT**) we have that:
-$$\hat{\beta}_0 \overset{\bullet}{\sim} N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \overset{\bullet}{\sim} N\left(\beta_1,\ \frac{\sigma^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
+$$\hat{\beta}_0 \overset{\bullet}{\sim} N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \overset{\bullet}{\sim} N\left(\beta_1,\ \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
 
 --
 
@@ -371,9 +371,11 @@ abline(h = 0, col = "#000000", lty = 4, lwd = 4)
 # We can use the function built in r
 acf(x = hat_epsilon, las = 1, lwd = 2,
     main = "Series: residuals", 
-    ylab = "Auto-correlation", 
-    xlab = "Lag", cex.lab = 2, cex.main = 1.5,
+    ylab = "", 
+    xlab = "Lag", cex.lab = 1.7, cex.main = 1.5,
     cex.axis = 1.3)
+mtext(text = "Auto-correlation", side = 2, 
+      line = 2.8, cex = 1.7)
 ```
 
 - **Note:** The auto-correlation values rarely go under the line, this 
@@ -386,9 +388,3 @@ different "time" (in this case order) lags.
 
 ```
 ]
-
-
-
-
-
-
