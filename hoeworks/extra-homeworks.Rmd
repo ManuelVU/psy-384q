@@ -1,0 +1,153 @@
+---
+title: "How to do your homework"
+subtitle: "Extra: Homeworks"  
+author: 
+  - "Manuel Villarreal"
+date: '08/28/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+```
+
+### Homeworks
+
+- Your first homework should be (or will be) available on the linear regression
+module on CANVAS.
+
+--
+
+- As you will see there is a propmpt with an experimental question and some 
+details about the design.
+
+--
+
+- This is all part of the information you need to do your homework.
+
+--
+
+- But what do you need to have on the pdf that you will turn in?
+
+---
+### Introduction
+
+- When introducing the results section of o a paper it is always useful to 
+remind people what it is that we are interested in.
+
+--
+
+- This should fit in a single paragraph and explain what the research question 
+was and the type of variables or conditions that have been colected, for example
+what are the experimental conditions.
+
+---
+### Sample
+
+- A second step is to introduce details about the sample, what are the means 
+of the variables of interest, how many participants are in each experimental 
+condition etc.
+
+--
+
+- This section should also be short but give the reader a general idea of the 
+structure of the study and some particularitues of the sample in it.
+
+---
+### Modeling
+
+- Describe the modeling approach that would answer the research question, and 
+if the model that you found to be the best is the same one then there is nothing 
+else to do.
+
+--
+
+- On the other hand, if the model that you used is different from the simplest
+model that would answer the experimental question you can explain your reasons
+briefly.
+
+--
+
+- For example, is there an important reason to add one variable? does the 
+additional variable make the model assumptions more plausible?
+
+---
+### Estimation
+
+- Present the results fomr the model you choose as the best.
+
+--
+
+- Here it is important not to just throw numbers at the reader but to interpret
+what does numbers mean and how do they relate to the experimental question.
+
+--
+
+- Remember to use in-line code to report estimated values and not to add more 
+than 3 decimal places in the numbers you report.
+
+--
+
+- Adding figures when describing results is always better than just writing 
+values on a table. As a rule of thumb if you can replace a table or in-line 
+coding with a graph it is always better to use the graph and explain the results
+with it.
+
+---
+### Finish
+
+- Finish with a small conclusion of what the results mean, for example, how does
+all the work that you've done answer the original research question?
+
+--
+
+- That should be all. Try not to make it more than 2 pages long including 
+figures.
+
+--
+
+- It's very important to summarize information.

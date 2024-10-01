@@ -1,6 +1,6 @@
 ---
 title: "Inference with linear models"
-subtitle: "Lecture 4"  
+subtitle: "Lecture 5"  
 author: 
   - "Manuel Villarreal"
 date: '08/28/24'
@@ -75,19 +75,22 @@ blood <- data.frame("id" = seq(from = 1, to = 200),
                   0.7 * age - 0.4 * age * as.numeric(sex == "male") +
                   rnorm(n = 200, mean = 0, sd = 3), digits = 1))
 
-mlr_int_1 <- lm(formula = blood_pressure ~ age + sex + age * sex, data = blood)
+lm_a <- lm(formula = blood_pressure ~ age, data = blood)
+lm_as <- lm(formula = blood_pressure ~ age + sex, data = blood)
+
+lm_asi <- lm(formula = blood_pressure ~ age + sex + age * sex, data = blood)
 ```
 
 ### Recap
 
-- In the last lecture we saw how to add interaction terms to a linear model 
+- In the last lecture we talk about how to add interaction terms to a linear model 
 in R using the `lm()` function.
 
 --
 
 - A visual inspection of the residuals using histograms, scatter plots, and
-auto-correlation, showed us that the residuals for this model behaved in a way
-that agreed with our original assumptions.
+auto-correlation plots, suggests that the model's residuals behave in a way
+that agrees with the multiple linear regression assumptions.
 
 --
 
@@ -95,13 +98,13 @@ that agreed with our original assumptions.
   
 --
 
-- However, the model that does not include the interactions is easier to 
-interpret, and on average it's residuals seemed good enough.
+- However, we also noted that the residuals of the model that does not include 
+the interaction term also behave in a manner that's close to our assumptions.
 
 --
 
-- How can we decide if adding an interaction, or any covariate for that matter, 
-is supported by our data?
+- The problem we face now is, How can we decide if adding an interaction, or any
+covariate for that matter, is supported by our data?
 
 ---
 ### Inference
@@ -111,336 +114,428 @@ choose from a pool of candidates is known as an **Inference** problem.
 
 --
 
-- There are multiple approach that can be used to find a solution which include:
+- Some possible solutions to this problem include:
 
   - Null Hypothesis Testing.
-  - Model comparison.
+  - Model selection
   - Forward/Backward selection algorithms (please never use these!)
+  - Bayesian inference.
 
 --
 
 **And most importantly: Theoretical Constraints**. That is, we choose the 
-covariates that are most relevant to our scientific question or that are 
+covariates that are most relevant to our scientific question, or that are 
 relevant according to a theory that we want to evaluate.
 
 ---
-### One parameter NHT
+### Model selection
 
-- Going back to our blood pressure example, let's say that we have a linear 
-model of the expected blood pressure of a participant as a function of age:
-$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age} + \epsilon_i$$
-and we want to test the hypothesis that the expected blood pressure of a 
-participant increases as a function of age. 
+- In this class we will focus on an alternative approach in classical statistics
+known as model selection
 
 --
 
-- The first thing that we need to do is to define our hypothesis mathematically.
+- The key idea is that we want to frame the selection of which variables to 
+keep in a model as a decision problem.
+
+--
+
+- What should we look for in a model?
+
+--
+
+- The first thing that we want is for our models to be accurate, that is, we 
+want models whose "predictions" are close to our actual observations.
 
 ---
-### Alternative hypothesis
+### Model selection
 
-- The statement "a participant's blood pressure increases as a function of age"
-can be expressed mathematically as:
-$$H_a:\beta_1 > 0$$ 
-this means that we expect the value of the parameter $\beta_1$ to be greater 
-than 0. In other words we expect the regression line to have a positive slope.
+- One way to measure the accuracy of a linear model is by using the residuals.
 
 --
 
-- The hypothesis under study is also known as the **Alternative** hypothesis.
+- Remember that linear models "predict" the conditional expectation of a 
+dependent variable given the values of an independent variable.
 
 --
 
-- As we will see next, the Alternative hypothesis is only used to specify the 
-direction or type of test we will do. However, our conclusions will always refer
-to what we call the **Null** hypothesis.
+- In our blood pressure example with only age as a predictor we said that:
+$$\mathrm{E}\left(\text{blood pressure}_i | \text{age}_i\right) = \beta_0 + \beta_1\text{age}_i$$
+
+--
+
+- Therefore, we can think of the difference between our observations and the 
+expected values (the line) as a measure of the accuracy of the model.
 
 ---
-### Null Hypothesis
+### Blood pressure example
 
-- The **Null** can be seen as the complement of the Alternative hypothesis. In
-other words, once the **Alternative** has been defined, all other possible 
-values of a parameter or a coefficient will be assigned to the null.
-
---
-
-- For example, with our Alternative hypothesis "a participant's blood pressure 
-increases as a function of age" or $H_a:\beta_1 > 0$, the **Null** would be
-specified as:
-$$H_0:\beta_1 \leq 0$$
+- Going back to our blood pressure example, let's look at the first two models
+we applied, one with age and the other with age and sex but with no interaction:
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age}_i + \epsilon_i$$
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age}_i + \beta_2 \text{sex}_i + \epsilon_i$$
 
 --
 
-- And as we can see, the union of our two hypothesis is equal to all the 
-possible values that our parameter $\beta_1$ could take.
+- It would be too complicated to compare the residual for each participant on 
+each number, so instead let's take the average:
+
+```{r}
+rss_a <- mean((lm_a$residuals) ^ 2)
+rss_as <- mean((lm_as$residuals) ^ 2)
+```
+
+--
+
+- **Notice** that we take the average of the residual squared, this is because, 
+by construction, the residuals will always add to 0!
 
 ---
-### The Null Hypothesis
+### Blood pressure example
 
-- **Notice** that a Null hypothesis does not necessarily state that the 
-parameter or coefficient will be exactly equal to $0$, but rather that it takes 
-on all other possible values outside of the hypothesis we wish to test.
-
---
-
-- Additionally, notice that the **Null** and **Alternative** hypothesis are 
-always mutually exclusive. This is important, otherwise there would be values of
-the parameter for which we would not be able to decide if we can reject the null 
-or not.
+- The mean of the squared residuals for the model that only includes age was **`r round(x = rss_a, digits = 2)`**, while the mean of the squared residuals of the 
+model that includes both age and sex was **`r round(x = rss_as, digits = 2)`**
 
 --
 
-- The **Null** hypothesis plays a central role in frequentist (classical) 
-inference.
+- This means that the mean error of the model that includes both age and sex is 
+lower, but should we keep the second model.
 
 --
 
-- As we will see, our conclusions will always be tied to the **Null** hypothesis
-and our ability to reject it or our failure to do so. 
+- Is having a lower error enough to justify the addition of a new covariate and 
+parameter?
 
 --
 
-- In comparison, the **Alternative** hypothesis will only be used to determine 
-the type of statistical test that we need to do.
+- The short answer is no, it is not enough.
+
+--
+
+- Why? Well the problem is that, whenever we add a new parameter (like the 
+betas) to a model, it's error will always decrease.
+
+--
+
+- This means that looking at the errors is not enough to decide which model we 
+should keep.
 
 ---
-### Null Hypothesys Testing
+### Model selection
 
-- Let's look back at our simplelinear regression model:
-$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age} + \epsilon_i$$
-
-- And change our original hypothesis and say that we wish to test if "a 
-participant's blood pressure changes as a function of age".
+- In general with linear models, it will always be the case that adding more 
+covariates will make the error smaller.
 
 --
 
-- Notice that we replaced the word "**increases**" with the word "**changes**". 
-This is now a different hypothesis and we need to define it formally.
+- Therefore, in order for us to know if the difference between the mean squared 
+errors of two models is enough to guarantee the additional parameter we need 
+to take into account how many parameters are in the model.
 
 --
 
-- We can formally state our alternative and null hypothesis as follows:
-$$H_0: \beta_1 = 0 \quad H_a: \beta_1 \neq 0$$
+- This is sometimes referred to as model complexity, the key intuition is that 
+under this perspective, adding a new parameter to a model will make it more 
+complex.
 
 --
 
-- **Notice** that the hypothesis are still mutually exclusive.
+- A different way to think about it is that adding parameters makes the 
+predictions of a model more "flexible"
+
+--
+
+- In our example, adding the parameter associated with the covariate "sex" 
+added a completely different line to our predictions (one for each sex in the 
+sample).
 
 ---
-### Null Hypothesis Testing
+### Model selection
 
-- Our new hypothesis just states that age will have an effect on blood pressure,
-however, we are not sure as to which direction that change will take. 
-
---
-
-- In other words, the change could be
+- Therefore, in order to choose between the two models that we have we need a 
+method that will fulfill two conditions.
 
 --
 
-  - Positive: as age increases so does blood pressure. 
-  
---
-
-  - Negative: as age increases blood pressure decreases.
-  
---
-
-- When the **Null** hypothesis takes a single value we refer to them as 
-**Point Null**.
+- First, we want a method that assigns "better" values to models that have 
+smaller errors (like the model with age and sex).
 
 --
 
-- As we will see, the type of test we have depends on how we specify our
-alternative hypothesis.
+- Second, we want a method that assigns "better" values to simpler models 
+(models with less parameters).
+
+--
+
+- One of the methods that meets both of these conditions and is typically used
+in the literature is the Bayesian Information Criterion.
 
 ---
-### Null Hypothesis Testing
+### Bayesian Information Criterion.
 
-- Notice that both our **Null** and **Alternative** hypothesis are expressed in 
-terms of the parameter $\beta_1$.
-
---
-
-- However, we don't have access to that value. The only thing we have is an 
-estimator or statistic for that value given that we have a sample of the 
-population.
+- The Bayesian Information Criterion (BIC) is a method used for model comparison
+that combines a measure of a model's "complexity" and the accuracy of a model.
 
 --
 
-- Thus, in order to test our hypothesis, we need to be to construct some 
-type of statistic (function of the sample) that depends only on what we know, 
-which is our estimator $\hat\beta_1$ and does not depend on the value of the 
-parameter $\beta_1$.
+- For linear models the BIC is easy to calculate:
+$$BIC(M_j) = \underbrace{n\ ln\left(\frac{\sum_i^n\hat\epsilon_i^2}{n}\right)}_{\text{error}} + \overbrace{k\ ln(n)}^{\text{complexity}}$$
 
 --
 
-- To do this we will make use of some of the results that we talk about in a 
-previous lecture.
+- According to this function, as the error and the number of parameters of model
+$M_j$ increases, so does the value of the BIC of that model.
+
+--
+
+- In general, we will look for the model that has the lowest BIC from the ones 
+that we are testing.
 
 ---
-### Building a statistical test
+### Bayesian Information Criterion.
 
-- Remember that we said that the linear model has 4 main assumptions:
+- Let's start by computing the BIC of the model that only includes age as a 
+predictor.
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age}_i + \epsilon_i$$
 
-  1. Errors have expectation 0.
-  1. Errors have constant variance
-  1. Error are independent.
-  1. Errors follow the same distribution.
-  
 --
 
-- We mention that if those assumptions hold true, then we know by the 
-**Central Limit Theorem** that our estimators found using the Ordinary Least
-Squares (**OLS**) method follow approximately a normal distribution:
-$$\hat{\beta}_0 \overset{\bullet}{\sim} N\left(\beta_0,\ \frac{\sigma^2\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right)\quad,\quad \hat{\beta}_1 \overset{\bullet}{\sim} N\left(\beta_1,\ \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
+First, we can use the `lm()` function to get the model's residuals.
+
+```{r}
+linear_age <- lm(formula = blood_pressure ~ age, data = blood)
+```
+
+--
+
+- Now the R object `linear_age` contains the outcome of the linear regression 
+with age as a predictor, therefore, we can look at the model's residuals by 
+calling `linear_age$residuals`. 
 
 ---
-### Building a statistical test
+### Bayesian Information Criterion.
 
-- In general, just to have some notation, we say that:
-
-$$\hat{\beta}_j \overset{\bullet}{\sim} N\left(\beta_j,\mathrm{V}ar(\beta_j)\right)$$
-
---
-
-- Let's assume that the simple linear regression model we have meets the assumptions. Which means that 
-$$\hat{\beta}_1 \overset{\bullet}{\sim} N\left(\beta_1,\ \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}\right)$$
+Using the residuals we can calculate the **error** component of the BIC for our 
+model.
 
 --
 
-- In this new relation we have the two values that we need to construct our
-statistic in order to make a test.
+First, we need the sample size, which in this case is equal to the 
+number of rows in our data:
+```{r}
+n <- dim(blood)[1]
+```
+
+--
+
+Then we can then get the mean squared error by taking the average of the
+residuals squared:
+
+```{r}
+epsilon_2_bar <- mean(linear_age$residuals ^ 2)
+```
+
+--
+
+Finally, we need to take the natural logarithm of the mean squared errors and 
+multiply it by the sample size. The `log()` function in R by default uses the 
+natural logarithm
+```{r}
+error_bic_age <- n * log(x = epsilon_2_bar)
+```
 
 ---
-### Building a statistical test
+### Bayesian Information Criterion.
 
-- Because we know that $\hat{\beta}_1$ is approximately normal, that means that:
-$$\frac{\hat{\beta}_1 - \beta_1}{\sqrt{\frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}}} \overset{\bullet}{\sim} N\left(0,\ 1\right)$$
-
---
-
-- This is very similar to a z-score and is just a result from probability theory.
+- We can compute the model's "complexity" by first counting the number of 
+parameters (values we need to estimate) in the model.
 
 --
 
-- Now, if the **Null** hypothesis was true, that would mean that $\beta_1 = 0$.
+Remember that our current model is:
+
+$$\text{blood pressure}_i = \beta_0 + \beta_1\text{age}_i + \epsilon_i$$
 
 --
 
-- This is an important step and is the reason why all our conclusions have to 
-be stated in terms of the normal distribution and not the alternative.
+- In this case we have to estimate $\beta_0$, $\beta_1$ and $\sigma^2$ which is 
+the variance of the errors.
+
+--
+
+Thus, we can say this model has 3 parameters, although some people would only
+count the $\beta$'s.
+
+```{r}
+k_age <- 3
+```
 
 ---
-### Building a statistical test
+### Bayesian Information Criterion.
 
-- We can write our new variable as:
-$$\frac{\hat{\beta}_1}{\sqrt{\frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}}} \overset{\bullet}{\sim} N\left(0,\ 1\right)$$
---
+Following the equation for the BIC we can calculate the complexity term as:
 
-- Nothing on our equation has changed, however, we replaced the value of 
-$\beta_1$ with it's value when the **Null** hypothesis is true.
-
---
-
-- This new statement no longer contains the value of the parameter $\beta_1$ 
-and only depends on the value of $\hat\beta_1$ which is what we wanted.
+```{r}
+complexity_age <- k_age * log(x = n)
+```
 
 --
 
-- This means that we could use this new quantity to test our hypothesis and 
-be done!... 
+Then, the model's BIC is equal to
+
+.center[
+$BIC\left(\mathrm{M}_{age}\right) =$ `r round(x = error_bic_age + complexity_age, digits = 2)`]
 
 --
 
-Well not so fast.
+- The problem with BIC's is that we can't interpret its value in isolation.
+
+--
+
+- Instead, the BIC values are only meaningful relative to other BIC values.
+
+--
+
+- In other words, we are only able to tell if one model is better in terms of
+it's BIC than another, but we can't tell if that model is **true** or not.
 
 ---
-### Building a statistical test
+### BIC for MLR
 
-$$\frac{\hat{\beta}_1}{\sqrt{\frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}}} \overset{\bullet}{\sim} N\left(0,\ 1\right)$$
-
-- Notice that we did get rid of the parameter $\beta_1$, we introduced a new 
-unknown to our equation which is the value of $\sigma^2$, the variance of the 
-errors.
+- Let's calculate the BIC value for the multiple linear regression model that 
+includes both age and sex as independent variables but no interaction.
 
 --
 
-- This means that we need to find a statistic or a function of the sample to 
-replace it.
+- Like before, we have to start by "fitting" the model and calculating the 
+mean squared residuals.
 
 --
 
-- If you remember, when we started working with OLS estimators for the simple 
-linear regression, we used to calculate the value of $\hat\sigma^2$.
+```{r}
+linear_age_sex <- lm(formula = blood_pressure ~ age + sex, data = blood)
+
+epsilon_2_bar_agesex <- mean(linear_age_sex$residuals ^ 2)
+```
+
+- The main difference is that now the number of parameters in the model has 
+increased from 3 to 4 (including the variance of the errors). 
 
 --
 
-- We can use that value this time in order to replace $\sigma^2$ and not have
-any unknown values in our equation!
+```{r}
+k_age_sex <- 4
+
+BIC_age_sex <- n * log(x = epsilon_2_bar_agesex) + k_age_sex * log(x = n)
+```
 
 ---
-### Building a statistical test
+### Comparison BIC
 
-$$\frac{\hat{\beta}_1}{\sqrt{\frac{\hat\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}}} \overset{\bullet}{\nsim} N\left(0,\ 1\right)$$
-
-- Good news is that we don't have any more unknown values in our equation! We 
-are almost done.
+- Now that we have calculated the BIC values for each of the two models we can 
+compare them. 
 
 --
 
-- Bad news is that when replace $\sigma^2$ with its unbiased estimator 
-$\hat\sigma^2$ we have introduced a new problem. The distribution of this new 
-equation is no longer **Normal**.
+.pull-left[
+$BIC\left(\mathrm{M}_{age}\right) =$ `r round(x = error_bic_age + complexity_age, digits = 2)`
+]
+.pull-right[
+$BIC\left(\mathrm{M}_{age,sex}\right) =$ `r round(x = BIC_age_sex, digits = 2)`
+]
 
 --
 
-- Thankfully, statisticians have found what distribution this new thing follows!
+- The BIC value of the model that includes only age as a coefficient was higher 
+by `r round(x = error_bic_age + complexity_age - BIC_age_sex, digits = 2)` 
+units in comparison to the model that includes both age and sex as coefficients.
+
+--
+
+- This means that, when comparing only these two models, we should always prefer
+the one that has both covariates included in the model.
+
+--
+
+- If this are the only two models that we want to test then we would be done and
+now we can interpret the parameters on the model and add the interpretation to
+our results section.
 
 ---
-### Building a statistical test
 
-$$\frac{\hat{\beta}_1}{\sqrt{\frac{\hat\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}}} \overset{\bullet}{\nsim} T_{n-(p+1)}$$
+class: middle, center, inverse
 
-- This new quantity follows a T distribution with $n-(p+1)$ degrees of freedom.
-where $p$ represents the number of covariates in our linear model.
-
---
-
-- For example, in our simple linear regression model $p=1$ which is age,and 
-therefore, the degrees of freedom would be $n-2$.
-
---
-
-- This is why it is called a T test!
-
---
-
-- Why is this equation useful? well we can use it to calculate some 
-probabilities.
+### Now it's your turn.
 
 ---
-### P-values
+### Use of BIC
 
-- Now that we have out new statistic and know its distribution **when the Null**
-**hypothesis is true**, we can use this knowledge to calculate the probability
-of obtaining the value that we actually found or something more extreme.
-
---
-
-- This is by definition a **p-value**. A **p-value** is the probability of 
-finding the value we found or something more extreme **when the null**
-**hypothesis is true**.
+- As we saw in our example we can use the BIC is a good alternative when 
+we have to compare two or more linear modes that have been fit to the same data.
 
 --
 
-- **Notice** that we emphasize that this is all true **only** when the Null 
-hypothesis is true.
+- The BIC can also be used in other cases, for example, we will see that when 
+using a generalized linear model we can also use the BIC.
 
 --
 
-- Formally we can express the p-value as:
-$$P\left(\lvert t \rvert\geq\frac{\hat{\beta}_1}{\sqrt{\frac{\hat\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}}} \right)$$
+- However, the mathematical expression that we have used is only a special
+case of the "normality" assumption.
 
+--
 
+- That means that we shouldn't use it if we do not believe that the errors 
+follow a normal distribution.
 
+--
+
+- Instead, the general form of the BIC asks us to use something called the likelihood.
+
+---
+### Likelihood
+
+- The likelihood of a model refers to the probability of observing the data that
+we actually observed conditional on the value of some parameter.
+
+--
+
+- Like the conditional expectation that means that we can set the values of the
+parameters and calculate the value of the likelihood using some mathematical 
+expression.
+
+--
+
+- We will not go over how to do this calculation exactly, however, this will be
+the default method for calculating the BIC of a model in R.
+
+--
+
+- For example, we can use the function `BIC()` in R in order to calculate the 
+Bayesian Information Criterion of a model using the likelihood function.
+
+---
+### Example: BIC with R
+
+- For example, to get the BIC of the three models we have used this class using
+the `BIC()` function:
+
+```{r}
+bic_age <- BIC(object = lm_a)
+bic_age_sex <- BIC(object = lm_as)
+bic_age_sex_int <- BIC(object = lm_asi)
+```
+
+--
+
+- With this method we get new values for the BIC of our models that are:
+
+$BIC\left(\mathrm{M}_{age}\right) =$ `r round(x = bic_age, digits = 2)` $\quad$
+$BIC\left(\mathrm{M}_{age,sex}\right) =$ `r round(x = bic_age_sex, digits = 2)` $\quad$
+$BIC\left(\mathrm{M}_{age,sex,int}\right) =$ `r round(x = bic_age_sex_int, digits = 2)`
+
+--
+
+- **Notice** that while the values have changed (the magnitude is not the same),
+we still have the same order between the 3 models, where according to the BIC we 
+should prefer the model that includes all there parameters.

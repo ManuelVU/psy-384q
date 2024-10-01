@@ -428,12 +428,3 @@ independence.
 
 - Furthermore, when do we decide to stop adding covariates (the $X$'s) to our
 model?
-
---
-
-- To answer these two questions we need to do a Null Hypotheses Test (NHT).
-
---
-
-- This process is known as inference and it's one of the most popular approaches
-in statistics.

@@ -1,0 +1,990 @@
+---
+title: "Statistical tests with linear models"
+subtitle: "Extra: NHT"
+author: 
+  - "Manuel Villarreal"
+date: '08/28/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+```
+
+```{r data-sim-example, echo = FALSE}
+library(flipbookr)
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
+```
+### Hypothesis test
+
+- It is common in science that when we design an experiment or a survey we 
+already have a hypothesis about the result.
+
+--
+
+- When this is the case we might want to test our hypothesis against experimental
+data.
+
+--
+
+- This view gave birth to an area of statistics known as Null Hypothesis Testing.
+
+--
+
+- The idea behind it is that we can use the assumptions from a model, and 
+our knowledge about probability distributions to test if our data align with 
+what is known as a **Null Hypothesis**.
+
+--
+
+- The math can get overwhelming, however, we can use R to do all the 
+calculations for us.
+
+---
+### The student t
+
+- Let's start with a simple linear model that we have not seen before. The 
+intercept only model.
+
+--
+
+- We can express this model as:
+$$\text{blood pressure}_i = \beta_0 + \epsilon_i$$
+
+--
+
+- In comparison to other models we have seen before, this one assumes that the
+expected blood pressure of a participant is a constant $\beta_0$ with some 
+added noise $\epsilon_i$.
+
+--
+
+- For now, let's say that we have checked our assumptions, and are confident 
+that the errors have an expected value of 0, constant variance $\sigma^2$, and 
+that they are independent and identically distributed.
+
+---
+### The student t
+
+- When these assumptions are met, we know that our **OLS estimates** will follow 
+approximately a Normal distribution with:
+$$\hat\beta_0 \overset{\cdot}{\sim} \mathrm{Normal}(\beta_0, \mathrm{V}ar(\hat\beta_0))$$
+
+--
+
+- Let's say for now that we want to test a simple hypothesis that states that 
+the expected blood pressure of participants in the task is **different** from 
+130 units.
+
+--
+
+- This is known as an **Alternative Hypothesis** and it can be expressed 
+formally as:
+$$H_a: \beta_0 \neq 130$$
+
+--
+
+- The alternative hypothesis will be useful when we need to determine the type
+of test we need to make.
+
+---
+### The Null Hypothesis
+
+- Now that we have specified our **Alternative Hypothesis** we can specify the 
+**Null Hypothesis**.
+
+--
+
+- The **Null Hypothesis** plays a very important role in statistics, as it is the
+one that we will use to derive all of our tests.
+
+--
+
+- We can express the Null as **the complement** of our Alternative hypothesis 
+$H_a$. That means that the Null states that the parameter that we are 
+interested in (in this case $\beta_0$) can take any value that is not contained 
+in the alternative hypothesis.
+
+--
+
+- In our example, because $H_a$ states that $\beta_0 \neq 130$, then our 
+**Null Hypothesis** will have to state that $\beta_0$ is 130 units exactly. We 
+can formalize our Null as:
+$$H_0:\beta_0 = 130$$
+
+---
+### How to test a Hypothesis?
+
+- Notice that both the Null and Alternative hypothesis are expressed in terms 
+of something that we don't know, which is the parameter $\beta_0$.
+
+--
+
+- How then can we test our hypothesis when we don't have access to this value?
+
+--
+
+- The objective of Null hypothesis testing is to build tests based on what we 
+know from our sample.
+
+--
+
+- In other words, we want to construct a "statistic" (function of the sample) 
+that we can use that will allow us to test our hypothesis.
+
+--
+
+- The idea behind statistical tests is to find ways to combine estimators and
+what we know about their probability distributions to find quantities that do 
+not depend on the unknown parts of a model (parameters).
+
+---
+### A world where the NULL is TRUE
+
+- Notice that from the definition of $H_a$, we can't tell exactly which value
+the parameter can take. We have just stated that it is not 130.
+
+--
+
+- So instead of focusing on the alternative we will focus on the **Null** ( $H_0$).
+
+--
+
+- It turns out that the **Null Hypothesis** will be the central element for our
+tests, and this is why the field is known as Null Hypothesis Testing.
+
+--
+
+- For now, we will carry on a thought "experiment". Let's assume that we live
+in a world where $H_0$ is **TRUE**.
+
+--
+
+- Given that $H_0$ states that the expected blood pressure of participants should
+be 130, we know that our estimator $\hat\beta_0$ follows a Normal distribution
+$$\hat\beta_0 \overset{\cdot}{\sim} \mathrm{Normal}(130, \mathrm{V}ar(\hat\beta_0))$$
+
+---
+### A world where the NULL is TRUE
+
+- This means that if we subtract 130 from the our OLS estimator then it will
+be true that:
+$$\hat\beta_0 - 130 \overset{\cdot}{\sim} \mathrm{Normal}(0,\mathrm{V}ar(\hat\beta_0))$$
+
+--
+
+- Furthermore, if we divide this new value by the standard deviation we should
+have the well known standard Normal distribution:
+$$\frac{\hat\beta_0 - 130}{\sqrt{\mathrm{V}ar(\hat\beta_0)}} \overset{\cdot}{\sim} \mathrm{Normal}(0,1)$$
+
+--
+
+- **Notice** that now $\beta_0$ is not in the equation so we have gotten rid
+of one of the parameters. However, we have introduced a new problem, $\mathrm{V}ar(\hat\beta_0)$ depends on $\sigma^2$.
+
+---
+### A world where the NULL is TRUE
+
+- In the one parameter model we know that 
+$\mathrm{V}ar(\hat\beta_0) = \sigma^2/n$, this is known as the standard error 
+of the mean (yes $\beta_0$ can be considered a mean).
+
+--
+
+- Therefore, the denominator of our equation now has an unknown value.
+
+--
+
+- We need to replace this quantity in a way that will allow us to get rid of 
+that parameter. However, remember that we can only use variables that:
+
+--
+
+  1. Depend only on values that we know (functions of our sample).
+  1. We know their probability distribution.
+  
+--
+
+- Turns out that we have an estimator that meets both these conditions.
+
+---
+### Variance estimator
+
+- The estimator that meets both conditions is $\hat\sigma^2$ which is the 
+unbiased estimator of the variance $\sigma^2$.
+
+--
+
+- The probability distribution of the variance estimator in a linear model is:
+$$\frac{(n-p)\hat\sigma^2}{\sigma^2} \sim \chi^2_{n-p}$$
+
+--
+
+- This is a "**Chi squared**" distribution of is defined by a single parameter
+known as **degrees of freedom**.
+
+--
+
+- The degrees of freedom are always equal to the value of the denominator used 
+to estimate the variance. 
+
+--
+
+- In a linear model this would be equal to $n-p$, where $n$ is the sample size 
+and $p$ is the number of $\beta$'s in the model.
+
+---
+### Student's T
+
+- From probability theory we know that when we divide a standard normal 
+variable by the squared root of a Chi squared variable divided by its degrees
+of freedom, we end up with a **new probability distribution** known as a 
+**Student's T**.
+
+--
+
+- In our case, we know that:
+$$\frac{\hat\beta_0 - 130}{\frac{\sigma}{\sqrt{n}}}$$
+follows a standard normal distribution, While
+$$\frac{(n-p)\hat\sigma^2}{\sigma^2}$$
+follows a Chi squared distribution.
+
+---
+### Student's T
+
+- Therefore, we can use those two quantities and create a new variable that 
+will follow a Student's T distribution:
+$$\frac{\frac{\hat\beta_0 - 130}{\frac{\sigma}{\sqrt{n}}}}{\sqrt{\frac{\frac{(n-p)\hat\sigma^2}{\sigma^2}}{n-p}}} \quad  = \frac{\frac{\hat\beta_0 - 130}{\frac{\sigma}{\sqrt{n}}}}{\frac{\hat\sigma}{\sigma}}\quad = \frac{\hat\beta_0 - 130}{\frac{\hat\sigma}{\sqrt{n}}}\overset{\cdot}{\sim}t_{(n-1)}$$
+
+--
+
+- And with that we have gotten rid of all the unknown values in our equation.
+
+--
+
+- Furthermore, we know approximately the distribution of this new quantity, which
+is a $t$ with $n-p$ degrees of freedom.
+
+---
+### Student's T
+
+- After all these steps we have a quantity that does not depend on any unknown 
+values and we know its probability distribution.
+
+--
+
+- We can now use this quantity to test our hypothesis.
+
+--
+
+- However, notice that the value $130$ is still there, that means that all of 
+this will only be true if the **Null hypothesis is TRUE**.
+
+--
+
+- Therefore, all of our test will depend on this assumption, which means that 
+our conclusions will only be regarding the Null hypothesis.
+
+---
+### Student's T test
+
+- Going back to our example, remember that our model states that a participant's
+blood pressure is a constant with some added noise:
+$$\text{blood pressure}_i = \beta_0 + \epsilon_i$$
+
+--
+
+- Additionally, our null hypothesis states that $\beta_0 = 130$. How can we use 
+our new quantity $t$ to test this hypothesis?
+
+--
+
+- Because our $H_a$ only states that $\beta_0 \neq 130$, we can calculate the 
+probability of obtaining a value of $t$ that we calculated from our sample or 
+something more extreme.
+
+--
+
+- In other words, we want to know what is the probability of obtaining 
+something more positive or more negative than the absolute value of 
+our variable $t$.
+
+---
+### Student's T test
+
+- First, let's find the value of $t$ for our intercept only model using our 
+sampled data.
+
+--
+
+- We can start by fitting our model to the data using the `lm()` function:
+
+```{r}
+lm_0 <- lm(formula = blood_pressure ~ 1, data = blood)
+```
+
+--
+
+- Note that instead of a variable's name, we just have a $1$ in the function. 
+This let's R know that the model that we want to fit only has an intercept 
+which is our $\beta_0$.
+
+--
+
+- The estimated value of $\beta_0$ was equal to 
+`r round(x = lm_0$coef[1], digits = 2)`. Which is close to the value in our
+**Null Hypothesis**, however, this does not mean that we can reject or fail to 
+reject the Null hypothesis just yet.
+
+---
+### Student's T test
+
+- Using the output of the `lm()` function we can estimate the variance. To do 
+this we need to use the residuals.
+
+```{r}
+hat_sigma <- sum(lm_0$residuals ^ 2) / (dim(blood)[1] - 1)
+```
+
+--
+
+- The estimated variance using this model was equal to 
+`r round(x = hat_sigma, digits = 2)`, and its squared root is 
+`r round(x = sqrt(hat_sigma), digits = 2)`. **Notice** that we are not using 
+the mean of the residuals this time. This is because we need the estimated 
+variance that uses $n-p$ in the denominator which R doesn't always use.
+
+--
+
+- Now that we have both $\hat\beta_0$ and $\hat\sigma^2$ we can calculate our 
+new variable $t$ following the equation that we found.
+
+---
+### Student's T test
+
+- Remember that we can express the new quantity we found as:
+$$\frac{\hat\beta_0 - 130}{\frac{\hat\sigma}{\sqrt{n}}}$$
+
+--
+
+- Replacing the values that we found for $\hat\beta_0$ and $\hat\sigma$ into 
+the equation we get:
+$$\frac{128.96 - 130}{\frac{4.28}{\sqrt{200}}}$$
+
+---
+### Student's T test
+
+- We can use R to calculate this value for us
+
+```{r}
+t_statistic <- (lm_0$coefficients - 130) / (sqrt(hat_sigma / dim(blood)[1]))
+```
+
+--
+
+- This is known as the  **t-statistic**. In our example the observed value was: 
+`r round(x = t_statistic, digits = 2)`.
+
+--
+
+- Remember that we said that only when the **Null hypothesis is TRUE** this new 
+quantity will follow a Student's t distribution with $n-p$ degrees of 
+freedom.
+
+--
+
+- We can use this fact to calculate the probability of observing that exact 
+value of our **t-statistic** or something more extreme!
+
+---
+### P-values
+
+- Remember that our Alternative Hypothesis stated that $H_a:\beta_0\neq130$. In 
+other words, our hypothesis was that the expected blood pressure of 
+participants could be lower or greater than 130.
+
+--
+
+- Because the Student's T distribution is symmetric around 0 (like the standard 
+normal distribution), we can express the probability of observing a value like 
+the one from our sample or something more extreme as:
+$$P\left(\mid t \mid \geq \left|\frac{\hat\beta_0 - 130}{\frac{\hat\sigma}{\sqrt{n}}}\right| \mid H_0\right)$$
+
+--
+
+- In this equation $t$ is acting as a dummy variable, and its only there to 
+help us express the probability that we are interested in.
+
+---
+### P-values
+
+- In other words, we are interested in finding the the probability of getting 
+a value lower than `r round(x = t_statistic, digits = 2)` or greater than
+`r round(x = -t_statistic, digits = 2)`. 
+
+--
+
+- Because of the symmetry of the T distribution, we just need to calculate the 
+probability of obtaining a value of our test statistic that is at least as 
+large as the one we found.
+
+--
+
+- We can find this probability using R.
+```{r}
+p_value <- 2 * pt(q = - abs(t_statistic), df = dim(blood)[1] - 1)
+```
+
+--
+
+- The **p-value** associated with our test was equal to 
+`r formatC(p_value, format = "e", digits = 2)`.
+
+--
+
+- This means that the probability of observing a **t-statistic** with a value 
+of `r round(x = -t_statistic, digits = 2)` or more extreme if the 
+**Null hypothesis is TRUE** is approximately to 0.0007.
+
+---
+### P-values
+
+- What does this mean? well it means that it is very unlikely to obtain the 
+result that we did in a world where the Null hypothesis is true.
+
+--
+
+- But how can we use that to decide what to do with our Null hypothesis?
+
+--
+
+- Let's look at the problem as a decision making problem.
+
+--
+
+- In this context we have two choices, we either **reject** the Null Hypothesis 
+or we **fail to reject** the Null.
+
+--
+
+- Why do we only have these two alternatives?
+
+--
+
+- Remember that we build our new statistic assuming that the Null hypothesis 
+was true. Therefore, our choices are tied to the Null hypothesis.
+
+---
+### P-values
+
+- Additionally, notice that even though it is small, there's a probability of 
+obtaining a value of our statistic that is at least as extreme as the one we 
+found. This means that there is a probability that the Null is true and we 
+found that value by chance.
+
+--
+
+- Therefore, we can't say that the Null hypothesis is not true, just that it is 
+unlikely. 
+
+--
+
+- Up to this point, all our work has been done in a world where the Null 
+is true, however, we can think of the complement of that world, a world where
+the Null hypothesis is not true.
+
+---
+### Inference
+
+- Let's consider both scenarios and the choices that we have:
+
+|                     | $H_0$ is True | $H_0$ is False    |
+|-------------------- | ------------- | ----------------- |
+|Not reject $H_0$     | True Positive | Type II error     |
+|Reject $H_0$         | Type I error  | True Negative     |
+
+--
+
+- The problem now is when do we choose to reject or not. To deal with this we 
+need to set up a decision criterion.
+
+--
+
+- This criterion is what we refer to as a critical value. For now we will refer 
+to it as $k^{*}$
+
+--
+
+- Let's go back to our example and see what the consequences of our choices for 
+$k^{*}$ can be
+
+---
+### Example: Intercept only model
+
+Let's say that we select a value of $k^*$ of 2.
+
+```{r null-true, echo=FALSE, fig.align='center', fig.height = 6.5, fig.width=9}
+region <- seq(from = 2, to = 6, length = 200)
+region_left <- seq(from = -2.5, to = 2, length = 200)
+
+par(yaxs = "i")
+plot(x = 0, y = 0, ann = FALSE, axes = FALSE, type = "n", 
+     xlim = c(-3, 6), ylim = c(0, 0.5))
+box(bty = "l")
+axis(1)
+polygon(x = c(region, rev(region)), 
+        y = c(dt(x = region, df = 19), rep(x = 0, times = length(region))),
+        col = "#ff634788", border = FALSE)
+polygon(x = c(region_left, rev(region_left)), 
+        y = c(dt(x = region_left, df = 19, ncp = 1.5),
+              rep(x = 0, times = length(region_left))),
+        col = "#1e90ff88", border = FALSE)
+
+curve(expr = dt(x, df = 19), from = -4, to = 6, add = TRUE, col = "tomato",
+      lwd = 2, n = 300)
+curve(expr = dt(x, df = 19, ncp = 1.5), from = -4, to = 6, add = TRUE, 
+      col = "dodgerblue", lwd = 2, n = 300)
+abline(v = 2, lwd = 2, lty = 3)
+text(x = 0, y = 0.45, labels = expression(paste("Not reject ", H[0])), 
+     cex = 1.5)
+text(x = 4, y = 0.45, labels = expression(paste("Reject ", H[0])), 
+     cex = 1.5)
+text(x = 5, y = 0.1, 
+     labels = bquote(paste(.(round(pt(q = 2, df = 19, lower.tail = FALSE),
+                                   digits = 3)))), cex = 1.5)
+arrows(x0 = 4.6, y0 = 0.091, x1 = 2.9, y1 = 0.02, lwd = 1.5, length = 0.12)
+text(x = -2.3, y = 0.15, 
+     labels = bquote(paste(.(round(pt(q = 2, df = 19, ncp = 1.5),
+                                   digits = 3)))), cex = 1.5)
+arrows(x0 = -1.85, y0 = 0.142, x1 = -0.6, y1 = 0.05, lwd = 1.5, length = 0.12)
+legend("right", legend = c("Type I error", "Type II error"), pch = 22, 
+       bty = "n", col = c("tomato", "dodgerblue"), 
+       pt.bg = c("#ff634788","#1e90ff88"), cex = 1.3)
+
+```
+
+---
+### Inference
+
+- Can we then choose a critical value $k^*$ and test our hypothesis?
+
+--
+
+- Well not exactly, the problem is that for a fixed critical value, like 2 in 
+our example, the probability of a type I error (the red area in the graph) 
+will change depending on multiple factors, for example the sample size.
+
+--
+
+- Instead, we will approach the problem from another angle.
+
+--
+
+- Let's say that we are willing to accept a 5% chance of committing a type I 
+error. That is we are willing to accept that in 5% of our tests, we will make 
+a mistake and **reject the Null hypothesis** when the 
+**Null was actually TRUE**.
+
+--
+
+- Then, we can use our knowledge of probability theory to find a value of $k^*$ 
+such that 5% of the total probability is accumulated before or after that value.
+
+---
+### Example T test
+
+- In our example, remember that our alternative hypothesis states that the 
+expected blood pressure of participants in the study will be different from 130.
+
+--
+
+- That means that it could be lower or higher. So we need to look at both 
+tails of the **t distribution** and see which values accumulate 5% of the total 
+probability.
+
+--
+
+```{r, echo=FALSE, fig.align='center', fig.height = 5, fig.width=8}
+region <- seq(from = qt(p = 0.975, df = 19), to = 4, length = 200)
+region_left <- seq(from = -4, to = qt(p = 0.025, df = 19), length = 200)
+
+par(yaxs = "i")
+plot(x = 0, y = 0, ann = FALSE, axes = FALSE, type = "n", 
+     xlim = c(-4, 4), ylim = c(0, 0.5))
+box(bty = "l")
+axis(1)
+polygon(x = c(region, rev(region)), 
+        y = c(dt(x = region, df = 19), rep(x = 0, times = length(region))),
+        col = "#ff634788", border = FALSE)
+polygon(x = c(region_left, rev(region_left)), 
+        y = c(dt(x = region_left, df = 19),
+              rep(x = 0, times = length(region_left))),
+        col = "#ff634788", border = FALSE)
+abline(v = c(1, -1) * qt(p = 0.025, df = 19), lwd = 2, lty = 3)
+curve(expr = dt(x, df = 19), from = -4, to = 6, add = TRUE, col = "tomato",
+      lwd = 2, n = 300)
+arrows(x0 = 3.2, y0 = 0.091, x1 = 2.9, y1 = 0.02, lwd = 1.5, length = 0.12)
+text(x = 3.6, y = 0.11, labels = "0.025", cex = 1.5)
+
+arrows(x0 = -3.2, y0 = 0.091, x1 = -2.9, y1 = 0.02, lwd = 1.5, length = 0.12)
+text(x = -3.4, y = 0.11, labels = "0.025", cex = 1.5)
+
+text(x = qt(p = 0.025, df = 19) - 0.5, y = 0.45, 
+     labels = bquote(.(round(x = qt(p = 0.025, df = 19), digits = 3))), 
+     cex = 1.5)
+text(x = -qt(p = 0.025, df = 19) + 0.5, y = 0.45, 
+     labels = bquote(.(round(x = -qt(p = 0.025, df = 19), digits = 3))),
+     cex = 1.5)
+```
+
+---
+### Two tailed t-test
+
+- The previous plot showed us that a critical value of approximately 
+$\pm 2.093$ will accumulate 5% of the probability.
+
+--
+
+- Therefore, if we use a value of $k^* = \pm 2.093$ as a decision criterion 
+for an experiment with a sample size of 20, then we can be sure that the 
+probability of a type one error is at most 5%.
+
+--
+
+- These value is known as $\alpha$ and in psychology it is common to select an 
+alpha of 0.05, or 5%.
+
+--
+
+- Notice that the value we choose for $\alpha$ is not related to the concept of
+a p-value.
+
+---
+### $\alpha$ and p-values
+
+- As we mention before, a p-value is the probability of observing a given value 
+of our test statistic or something more extreme.
+
+--
+
+- In comparison, $\alpha$ is a measure of the risk of committing a type I error 
+that we are willing to accept in a given experiment.
+
+--
+
+- We should always choose a value of $\alpha$ first, even before running the 
+experiment. Choosing the value of $\alpha$ and fixing a sample size results in 
+a fixed critical value $k^*$ that we then compare our t statistic to.
+
+--
+
+- When the value of our t statistic (or any other statistic for that matter) is
+more extreme than that critical value, then we can 
+**reject the Null Hypothesis**.
+
+--
+
+- Notice that if the value of statistic is not more extreme that doesn't mean 
+that the Null hypothesis is true! It only means that we can't reject that the 
+Null hypothesis is true.
+
+---
+### Failure to reject and equality
+
+- A failure to reject the Null hypothesis does not mean that two quantities 
+are equal.
+
+--
+
+```{r null-again, echo=FALSE, fig.align='center', fig.height = 5, fig.width=8}
+region <- seq(from = 2, to = 6, length = 200)
+region_left <- seq(from = -2.5, to = 2, length = 200)
+
+par(yaxs = "i")
+plot(x = 0, y = 0, ann = FALSE, axes = FALSE, type = "n", 
+     xlim = c(-3, 6), ylim = c(0, 0.5))
+box(bty = "l")
+axis(1)
+polygon(x = c(region, rev(region)), 
+        y = c(dt(x = region, df = 19), rep(x = 0, times = length(region))),
+        col = "#ff634788", border = FALSE)
+polygon(x = c(region_left, rev(region_left)), 
+        y = c(dt(x = region_left, df = 19, ncp = 1.5),
+              rep(x = 0, times = length(region_left))),
+        col = "#1e90ff88", border = FALSE)
+
+curve(expr = dt(x, df = 19), from = -4, to = 6, add = TRUE, col = "tomato",
+      lwd = 2, n = 300)
+curve(expr = dt(x, df = 19, ncp = 1.5), from = -4, to = 6, add = TRUE, 
+      col = "dodgerblue", lwd = 2, n = 300)
+abline(v = 2, lwd = 2, lty = 3)
+text(x = 0, y = 0.45, labels = expression(paste("Not reject ", H[0])), 
+     cex = 1.5)
+text(x = 4, y = 0.45, labels = expression(paste("Reject ", H[0])), 
+     cex = 1.5)
+text(x = 5, y = 0.1, 
+     labels = bquote(paste(.(round(pt(q = 2, df = 19, lower.tail = FALSE),
+                                   digits = 3)))), cex = 1.5)
+arrows(x0 = 4.6, y0 = 0.091, x1 = 2.9, y1 = 0.02, lwd = 1.5, length = 0.12)
+text(x = -2.3, y = 0.15, 
+     labels = bquote(paste(.(round(pt(q = 2, df = 19, ncp = 1.5),
+                                   digits = 3)))), cex = 1.5)
+arrows(x0 = -1.85, y0 = 0.142, x1 = -0.6, y1 = 0.05, lwd = 1.5, length = 0.12)
+legend("right", legend = c("Type I error", "Type II error"), pch = 22, 
+       bty = "n", col = c("tomato", "dodgerblue"), 
+       pt.bg = c("#ff634788","#1e90ff88"), cex = 1.3)
+
+```
+
+- This example shows that it could be the case that the Null is not true and 
+we don't have evidence to reject the Null.
+
+---
+### Testing arbitrary hypothesis
+
+- One way to test a Null hypothesis in a linear model is by calling the 
+function `summary()` around the output of our`lm()` function.
+
+--
+
+- In our one parameter model we would get the following output:
+
+```{r, echo = FALSE}
+summary(object = lm_0)
+```
+
+---
+### Testing arbitrary hypothesis
+
+- The t-statistic that R calculates for us will test the Null Hypothesis 
+$H_0: \beta_0 = 0$. 
+
+--
+
+- However, we can use the output of the summary function to test any arbitraty 
+Null hypothesis.
+
+--
+
+- Let's start by saving the output of our function into an r object:
+
+```{r}
+summary_lm_0 <- summary(object = lm_0)
+```
+
+--
+
+- Once we have stored the output as an R object we can access it.
+
+--
+
+- For example using the code `summary_lm_0$coefficients` will return a matrix 
+that includes the parameters organized by row and in the columns we have the 
+estimated value, the standard error, the t-statistic, and the p-value.
+
+---
+### Testing arbitrary hypothesis
+
+- Let's use this output to test out original hypothesis that states that 
+$H_0: \beta_0 = 130$.
+
+--
+
+- We first need to calculate our value of t:
+```{r}
+t_stat <- (lm_0$coefficients - 130) / summary_lm_0$coefficients[1, "Std. Error"]
+```
+
+--
+
+- This way we can get the same value of t that we did before
+`r round(x = t_stat, digits = 2)`
+
+--
+
+- In general, remember that for any $\beta$ in a linear model we can build a 
+t-test using the following equation:
+$$\frac{\hat\beta - \beta_{H_0}}{\sqrt{Var(\hat\beta)}}$$
+
+---
+
+class: middle, center, inverse
+
+### Now it's your turn!
+
+---
+### Hypothesis for multiple parameters
+
+- Another type of hypothesis we can test is one that states that multiple 
+parameters ar the same time are equal to 0.
+
+--
+
+- For example, let's say that we have our model with age, sex and the 
+interaction between them. 
+
+--
+
+- A Null hypothesis we could test is $H_0: \beta_2\ \&\ \beta_3 = 0$. In other 
+words, we are interested in testing if the sex of a participant and the 
+interaction between age and sex have an effect on the expected blood pressure of
+participants.
+
+--
+
+- To test this hypothesis we need to use another R function known as `anova()`
+
+---
+### The `anova()` function
+
+- The anova function in R can take one or two arguments, each of which will be 
+the object where we stored the output of a linear regression.
+
+--
+
+- to test our Null hypothesis that $H_0: \beta_2\ \&\ \beta_3 = 0$, we need to 
+fit two models to the data. The first one includes only age as a covariate and 
+the second one will include age, sex, and their interaction.
+
+```{r}
+lm_age <- lm(formula = blood_pressure ~ age, data = blood)
+lm_as_int <- lm(formula = blood_pressure ~ age + sex + age * sex, 
+                data = blood)
+```
+
+--
+
+- Now we can use the function `anova()` to get what is known as an ANOVA table.
+```{r}
+anova_a_vs_asint <- anova(lm_age, lm_as_int) 
+```
+
+---
+### The `anova()` function
+
+- The output of the `anova()` function is:
+```{r, echo = FALSE}
+anova_a_vs_asint
+```
+
+--
+
+- In this case we have a different test statistic known as F. This one is 
+obtained by dividing two $\chi^2$ each divided by their degrees of freedom.
+
+--
+
+- Similar to the  $\chi^2$ the F distribution will also be strictly positive 
+and skewed. However, it will be defined by two different degrees of freedom, 
+one for the numerator and one for the denominator.
+
+---
+### F statistic
+
+- When we use it to compare two "nested" linear models we can express the value
+of F as:
+$$F = \frac{\frac{(n-p_1) \hat\sigma^2_1 - (n-p_2) \hat\sigma^2_2}{p_2 - p_1}}{\hat\sigma^2_2}$$
+
+--
+
+- Similar to what we did on with the t-statistic, we can calculate the 
+probability of obtaining a value of F like the one one in our sample or 
+something greater. 
+
+--
+
+- Because we know that adding parameters will always reduce the error from the 
+model, we know that F will always be greater than 0, so we only need to look at
+positive values of F.
+
+---
+### Example continuation
+
+- In our example, the comparison between the age only model and the model that 
+includes age, sex and their interaction, the F value we obtained was 
+`r round(x = anova_a_vs_asint$F[2], digits = 3)` which has an associated p-value 
+of 
+
+--
+
+```{r}
+p_value_f <- pf(q = anova_a_vs_asint$F[2], 
+                df1 = 2, df2 = dim(blood)[1] - 4,
+                lower.tail = FALSE)
+print(p_value_f)
+```
+
+---
+### Example continuation
+
+- While the critical value for our F test for a 5% type I error probability is
+equal to
+```{r}
+qf(p = 0.05, df1 = 2, df2 = dim(blood)[1] - 4, lower.tail = FALSE)
+```
+
+--
+
+- Because our value of F is greater than the critical value, we can reject the 
+Null hypothesis that both sex and the interaction between sex and age have an 
+effect of 0 on the expected blood pressure of participants **at the same time**.

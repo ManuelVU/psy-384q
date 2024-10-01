@@ -1,0 +1,787 @@
+---
+title: "Transformation of independent variables"
+subtitle: "Lecture 6"  
+author: 
+  - "Manuel Villarreal"
+date: '09/30/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+
+cities <- readr::read_csv(file = here::here("week-05/data/cities.csv"))
+```
+
+### In class activity
+
+- This time we will start with an activity.
+
+--
+
+- Download the data file `cities.csv` and the .Rmd file for the in class 
+activity and solve the first three points.
+
+---
+### Example: average temperature
+
+```{r, echo=FALSE}
+
+miami <- subset(x = cities, subset = city == "miami")
+sfn <- subset(x = cities, subset = city == "san_francisco")
+
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(40, 90))
+
+qq_m <- miami |> 
+  dplyr::group_by(month) |> 
+  dplyr::summarise("q1" = quantile(x = avgtemp, probs = 0.25),
+                   "q2" = quantile(x = avgtemp, probs = 0.5),
+                   "q3" = quantile(x = avgtemp, probs = 0.75),
+                   "max" = max(avgtemp),
+                   "min" = min(avgtemp))
+
+qq_s <- sfn |> 
+  dplyr::group_by(month) |> 
+  dplyr::summarise("q1" = quantile(x = avgtemp, probs = 0.25),
+                   "q2" = quantile(x = avgtemp, probs = 0.5),
+                   "q3" = quantile(x = avgtemp, probs = 0.75),
+                   "max" = max(avgtemp),
+                   "min" = min(avgtemp))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#ff6347aa", 
+     border = "tomato")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+rect(xleft = seq(from = 0.5, to = 11.5, by = 1), 
+     xright = seq(from = 1.1, 12.1, by = 1),
+     ybottom = qq_s$q1, ytop = qq_s$q3, col = "#1e90ffaa", 
+     border = "dodgerblue")
+
+segments(x0 = seq(from = 0.5, to = 11.5, by = 1),
+         x1 = seq(from = 1.1, 12.1, by = 1),
+         y0 = qq_s$q2,
+         y1 = qq_s$q2, 
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q3,
+         y1 = ifelse(test = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1) > qq_s$max, 
+                     yes = qq_s$max,
+                     no = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q1,
+         y1 = ifelse(test = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1) < qq_s$min, 
+                     yes = qq_s$min,
+                     no = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+legend("bottom", legend = c("Miami", "San Francisco"), pch = 15, 
+       bty = "n", col = c("tomato", "dodgerblue"), cex = 1.3)
+
+```
+
+- What can we tell from the plot?
+
+---
+### Example: average temperature
+
+- It is clear from the plot that the average daily temperature does not follow 
+a straight line.
+
+--
+
+- This actually agrees with our experience, at least in the northern hemisphere 
+the months of July, August, and September are usually the warmer of the year.
+
+--
+
+- Then around October and November the temperature starts to drop.
+
+--
+
+- Can we still use a linear model to account for the variability in average 
+temperature in each city?
+
+--
+
+- It turns out that we can, however, it is more difficult than just using a 
+multiple linear regression.
+
+---
+### A general version of the linear model
+
+- Up to this point we have talked about the linear model in a simplified way. 
+
+--
+
+- In each of our models we have a set of covariates that we want to use in 
+order to account for the expected value of some dependent variable.
+
+--
+
+- However, we haven't asked ourselves what makes a "linear model" linear.
+
+--
+
+- For example, is the following model a linear model?
+$$\mathrm{E}\left(Y_i\mid X_{i1}\right) = \beta_0 + \beta_1e^{X_{i1}}$$
+
+--
+
+- Well, it turns out that this is a linear model. But why?
+
+---
+### A general version of the linear model
+
+- A model is considered linear if the parameters and covariates are combined 
+using only addition and multiplication.
+
+--
+
+- In our previous example, even though we have a transformation of our 
+covariate $e^{X_{i1}}$, it is still being multiplied by the parameter $\beta_1$ 
+and that quantity is added to another parameter $\beta_0$.
+
+--
+
+- Notice that we have not said that the covariates have to be used as they
+have been measured in an experiment.
+
+--
+
+- Only that we need to combine whatever form of the covariate with the 
+parameters using only addition and multiplication.
+
+---
+### A general version of the linear model
+
+- In general, a linear model can be expressed as:
+$$Y_i = \beta_0 + \beta_1 f_1(X_{i1}) + \cdots +  \beta_k f_k(X_{i1}) + \beta_{k+1} f_{k+1}(X_{i2}) + \cdots + \beta_K f_{K}(X_{ip}) + \epsilon_i$$
+
+--
+
+- What does this mean?
+
+--
+
+- Well it means that we can use any transformation of the covariates that we 
+have in the sample $X_{i1},\dots, X_{ip}$.
+
+--
+
+- This brings another level of flexibility to a linear models and at the same 
+time increases the number of decisions that we need to make.
+
+--
+
+- For example, should we include the month to our average temperature model or
+should we add some transformation of the month?
+
+---
+### Finding transformations
+
+- Using covariate transformations will modify the predictions that the model 
+can make from a straight line into a curve.
+
+--
+
+- Finding which transformation to use is not easy and normally we would prefer 
+to justify their addition using theory.
+
+--
+
+- However, if we do not have the support of a theory then we can look at the 
+residuals and try to find a way to deal with the lack of linearity in the data.
+
+--
+
+- Let's look at the example using the two cities data.
+
+--
+
+- First let's fit a model that includes only the city as a predictor and look 
+at the residuals.
+
+--
+
+```{r}
+lm_city <- lm(formula = avgtemp ~ city, data = cities) 
+```
+
+---
+### Example: average temperature
+
+- According to our model, the estimated expected average temperature for the 
+city of Miami in 2017 was `r round(x = lm_city$coef[1], digits = 2)` degrees 
+Fahrenheit.
+
+- The estimated expected average temperature on the city of San Francisco was 
+`r round(x = lm_city$coef[1] + lm_city$coef[2], digits = 2)` degrees 
+Fahrenheit, which is `r round(x = -lm_city$coef[2], digits = 2)` 
+degrees below the estimated value for Miami.
+
+```{r, echo=FALSE, out.width="37%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(40, 90))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#ff6347aa", 
+     border = "tomato")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+rect(xleft = seq(from = 0.5, to = 11.5, by = 1), 
+     xright = seq(from = 1.1, 12.1, by = 1),
+     ybottom = qq_s$q1, ytop = qq_s$q3, col = "#1e90ffaa", 
+     border = "dodgerblue")
+
+segments(x0 = seq(from = 0.5, to = 11.5, by = 1),
+         x1 = seq(from = 1.1, 12.1, by = 1),
+         y0 = qq_s$q2,
+         y1 = qq_s$q2, 
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q3,
+         y1 = ifelse(test = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1) > qq_s$max, 
+                     yes = qq_s$max,
+                     no = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q1,
+         y1 = ifelse(test = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1) < qq_s$min, 
+                     yes = qq_s$min,
+                     no = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+abline(h = c(lm_city$coef[1], lm_city$coef[1] + lm_city$coef[2]), lwd = 4,
+       col = c("red", "blue"), lty = c(1,2))
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+legend("bottom", legend = c("Miami", "San Francisco"), pch = 15, 
+       bty = "n", col = c("tomato", "dodgerblue"), cex = 1.3)
+```
+
+---
+### Example: average temperature
+
+- Now let's look at the residuals as a function of the month ans see what we 
+can find.
+
+```{r, echo=FALSE, out.width="50%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), 
+     ylim = c(min(lm_city$residuals), max(lm_city$residuals)))
+
+points(x = jitter(cities$month, amount = 0.3), y = lm_city$residuals,
+       pch = 21, bg = "slategray", cex = 1.2)
+abline(h = 0, lwd = 3, lty = 2)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Residuals", side = 2, line = 2.3, cex = 1.5)
+```
+
+---
+### Example: average temperature
+
+- From the residuals (as well as the data plot) we can see the non-linearity in 
+the data.
+
+--
+
+- However, we can also see that that model is over estimating our observations 
+most of the time. 
+
+--
+
+- One thing we can do to improve the model is just add the month covariate to 
+the regression without any transformation.
+
+--
+
+- Adding the month will help us to reduce the bias of the model ar least on the
+first couple of months.
+
+--
+
+- How will this happen? well remember that the intercept and the slope are 
+correlated, so adding a slope will change how the intercept is estimated.
+
+```{r}
+lm_city_month <- lm(formula = avgtemp ~ city + month, data = cities)
+```
+
+---
+### Example: average temperature
+
+- Now we can look at the expected value predicted by the model against the data
+
+```{r, echo=FALSE, out.width="50%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(40, 90))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#ff6347aa", 
+     border = "tomato")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+rect(xleft = seq(from = 0.5, to = 11.5, by = 1), 
+     xright = seq(from = 1.1, 12.1, by = 1),
+     ybottom = qq_s$q1, ytop = qq_s$q3, col = "#1e90ffaa", 
+     border = "dodgerblue")
+
+segments(x0 = seq(from = 0.5, to = 11.5, by = 1),
+         x1 = seq(from = 1.1, 12.1, by = 1),
+         y0 = qq_s$q2,
+         y1 = qq_s$q2, 
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q3,
+         y1 = ifelse(test = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1) > qq_s$max, 
+                     yes = qq_s$max,
+                     no = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q1,
+         y1 = ifelse(test = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1) < qq_s$min, 
+                     yes = qq_s$min,
+                     no = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+abline(a = lm_city_month$coef[1], b = lm_city_month$coef[3], lwd = 4,
+       col = "red", lty = 1)
+
+abline(a = lm_city_month$coef[1] + lm_city_month$coef[2],
+       b = lm_city_month$coef[3], 
+       lwd = 4, col = "blue", lty = 2)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+legend("bottom", legend = c("Miami", "San Francisco"), pch = 15, 
+       bty = "n", col = c("tomato", "dodgerblue"), cex = 1.3)
+```
+
+---
+### Example: average temperature
+
+- Once again we can look at the residuals to see what has changed.
+
+```{r, echo=FALSE, out.width="50%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), 
+     ylim = c(min(lm_city_month$residuals), max(lm_city_month$residuals)))
+
+points(x = jitter(cities$month, amount = 0.3), y = lm_city_month$residuals,
+       pch = 21, bg = "slategray", cex = 1.2)
+abline(h = 0, lwd = 3, lty = 2)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Residuals", side = 2, line = 2.3, cex = 1.5)
+```
+
+---
+### Example: average temperature
+
+- The residuals show a lower bias for the first few months, however, we can 
+still see that there is a non-linear trend and that the temperature for the 
+last few months is being overestimated.
+
+--
+
+- Now we can start thinking about how to transform the values of the month in 
+order to get the effect we want.
+
+--
+
+- First let's look at the trends in the residuals to know which type of 
+function we would want to use.
+
+--
+
+- From the plot of the residuals we can see that they are lower at the beginning
+and the end of the year. 
+
+--
+
+- At the same time, the highest values are around month 6 or 7.
+
+---
+### Cosine function
+
+- If we assume that those values are symmetric what we want is a function that 
+assigns small or negative values to the first and last months and assigns
+positive values near to month 7.
+
+--
+
+- One function that can do something like this is the cosine function.
+
+--
+
+- A cosign function assigns a value of 1 to values close to 0 or 2$\pi$, while
+it assigns values near -1 to values around $\pi < x < 3/2 \pi$.
+
+--
+
+- The first thing we could do is to change our month values so that they start 
+at 0 and end at $2\pi$ this way we make sure that both January and December 
+will have the largest values once we use the cosine function.
+
+--
+
+- We can transform our data using the following function:
+$$- \operatorname{cos}\left( 2\pi \frac{month_i - 1}{11}\right)$$
+
+---
+### Cosine function
+
+- What does this transformation look like?
+
+```{r, echo=FALSE}
+curve(expr = -cos(2*pi*((x-1)/11)), from = 1, to = 12, axes = FALSE, 
+      ann = FALSE, lwd = 3)
+box(bty = "l")
+axis(1)
+axis(2)
+mtext(text = "Month", side = 1, line = 2.3)
+```
+
+---
+### Cosine function
+
+- As we can see, this function assigns the lowest values to months near 1 and 12
+
+--
+
+- At the same time it assigns the largest values to months near 6.
+
+--
+
+- We can use this transformation in our model, but first we need to add it to 
+the data
+
+```{r}
+cities <- cities |> 
+  dplyr::mutate("cos_month" = -cos(2 * pi * ((month - 1) / 11)))
+```
+
+- This adds a new column to our data called `cos_month` that has the value of 
+the transformation for each row in our data frame.
+
+--
+
+- Now that we have our new variable we can use it in a new linear model
+
+```{r}
+lm_transform <- lm(formula = avgtemp ~ city + month + cos_month, 
+                   data = cities)
+```
+
+---
+### Example: average temperature
+
+- As we have done before, we can look at the predicted values from the linear 
+model
+
+```{r, echo=FALSE, out.width="50%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(40, 90))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#ff6347aa", 
+     border = "tomato")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+rect(xleft = seq(from = 0.5, to = 11.5, by = 1), 
+     xright = seq(from = 1.1, 12.1, by = 1),
+     ybottom = qq_s$q1, ytop = qq_s$q3, col = "#1e90ffaa", 
+     border = "dodgerblue")
+
+segments(x0 = seq(from = 0.5, to = 11.5, by = 1),
+         x1 = seq(from = 1.1, 12.1, by = 1),
+         y0 = qq_s$q2,
+         y1 = qq_s$q2, 
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q3,
+         y1 = ifelse(test = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1) > qq_s$max, 
+                     yes = qq_s$max,
+                     no = qq_s$q3 + (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+segments(x0 = seq(from = 0.8, to = 11.8, by = 1),
+         x1 = seq(from = 0.8, to = 11.8, by = 1),
+         y0 = qq_s$q1,
+         y1 = ifelse(test = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1) < qq_s$min, 
+                     yes = qq_s$min,
+                     no = qq_s$q1 - (1.5 * qq_s$q3 - qq_s$q1)),
+         col = "dodgerblue", 
+         lwd = 2)
+
+curve(expr = lm_transform$coef[1] + lm_transform$coef[3] * x +
+        lm_transform$coef[4] * -cos(2 * pi * ((x - 0.5) / 11)),
+      lwd = 4, col = "red", lty = 1, add = TRUE)
+
+curve(expr = lm_transform$coef[1] + lm_transform$coef[2] +
+        lm_transform$coef[3] * x +
+        lm_transform$coef[4] * -cos(2 * pi * ((x - 0.5) / 11)),
+      lwd = 4, col = "blue", lty = 2, add = TRUE)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+legend("bottom", legend = c("Miami", "San Francisco"), pch = 15, 
+       bty = "n", col = c("tomato", "dodgerblue"), cex = 1.3)
+```
+
+---
+### Example: average temperature
+
+- Adding the transformed value of the months actually improves the model
+
+--
+
+- But is the improvement enough?
+
+--
+
+- We can use the BIC to see if the model that includes the transformed month 
+is better than one that does not include it
+
+--
+
+- The BIC of the model that does not include the transformation was 
+`r round(x = BIC(lm_city_month), digits = 2)`, while the BIC for the model that 
+does include the transformation was `r round(x = BIC(lm_transform), digits = 2)`
+
+--
+
+- Given that the BIC for the model that includes the transformation is lower 
+we can say that his model improves on the one that only has the city and the 
+month as covariates.
+
+--
+
+- However, there is still a problem. If we look at the residuals we can see
+that there is still bias in our estimation of the expected average temperature 
+by month.
+
+---
+### Example: average temperature
+
+```{r, echo=FALSE, out.width="30%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), 
+     ylim = c(min(lm_transform$residuals), max(lm_transform$residuals)))
+
+points(x = jitter(cities$month, amount = 0.3), y = lm_transform$residuals,
+       pch = 21, bg = "slategray", cex = 1.2)
+abline(h = 0, lwd = 3, lty = 2)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Residuals", side = 2, line = 2.3, cex = 1.5)
+```
+
+- With the information we have there is not a lot we can do to solve this 
+problem, we could add other transformations or covariates.
+
+--
+
+- Choosing transformations for covariates can be useful in a linear regression, 
+however, the problem of which transformation to use is difficult to solve and 
+most of the time we will try to avoid it.
+
+
+

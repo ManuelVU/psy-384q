@@ -1,0 +1,30 @@
+---
+title: "Variable Transformations"
+author: ""
+date: "2024-09-26"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Make a plot of the average temperature by month stratified by city.
+
+1. Estimate the parameters of a linear model that includes the city as a 
+predictor of average temperature.
+
+1. Plot the residuals as a function of the month.
+
+# Part one ends here ---
+
+1. Transform the month variable using the cosine function from the lecture.
+
+1. Estimate the parameters of a model that includes the city, the month and the 
+transformed value of the month as predictors of average temperature.
+
+1. Estimate the BIC for the previous two models and compare them. Which one 
+would you choose?
+
+1. Plot the expected value for the average temperature as a function of month
+stratified by city.

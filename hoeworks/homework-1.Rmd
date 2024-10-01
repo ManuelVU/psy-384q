@@ -1,0 +1,22 @@
+---
+title: "Homework 1 (CHANGE TITLE)"
+author: "Add author"
+output: pdf_document
+date: "2024-09-17"
+---
+
+```{r setup, include=FALSE}
+# keep this section of the code here
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+You've been hired as a data analyst for a memory experiment. The objective of 
+the study is to test if there are differences between recognition and free 
+recall memory tasks when the stimuli used are low or high frequency words. The
+file `memory_frequency.csv` contains data from the experiment. The variables
+include an identification number (id) for each participant, a measure of the 
+performance of each participant (memory), the experimental condition (condition,
+can take values "recognition" or "free"), the type of stimulus (stimulus, can 
+take values "low" or "high" for the frequency of words), and sex (sex, can take
+values "female" and "male").
+

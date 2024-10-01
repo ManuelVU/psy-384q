@@ -1,0 +1,69 @@
+---
+title: "In class activity 05"
+output: pdf_document
+date: "2024-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data-sim-example, echo = FALSE}
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
+```
+
+1. Using data from the blood pressure example run two models using the `lm()` 
+function, one that includes age and sex as covariates and one that includes 
+age, sex, and the interaction.
+
+```{r}
+lm_1 <- lm(formula = blood_pressure ~ age + sex, data = blood)
+lm_2 <- lm(formula = blood_pressure ~ age + sex + age * sex, data = blood)
+```
+
+1. Calculate the BIC for both models and compare them.
+```{r}
+bic_age_sex <- dim(blood)[1] * log(x = mean(lm_1$residuals ^ 2)) +
+  4 * log(x = dim(blood)[1])
+
+bic_int <- dim(blood)[1] * log(x = mean(lm_2$residuals ^ 2)) +
+  5 * log(x = dim(blood)[1])
+
+print(c(bic_age_sex,bic_int))
+```
+
+1. Write a conclusion stating which model you would choose from the two and 
+interpret the values of the parameters.
+
+1. Fit a model that adds height as a predictor (with age, sex, and the 
+interactions). Calculate the BIC, is this new model better than the one that
+doesn't include height?
+
+```{r}
+lm_3 <- lm(formula = blood_pressure ~ age + sex + height + age * sex, 
+           data = blood)
+
+bic_int_height <- dim(blood)[1] * log(x = mean(lm_3$residuals ^ 2)) +
+  6 * log(x = dim(blood)[1])
+
+print(c(bic_age_sex,bic_int, bic_int_height))
+```
+
+
+

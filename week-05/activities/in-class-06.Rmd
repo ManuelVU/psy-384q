@@ -1,0 +1,63 @@
+---
+title: "In class activity 7"
+author: ""
+date: "2024-09-25"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+set.seed(291792)
+# simulating data for experiment one
+blood <- data.frame("id" = seq(from = 1, to = 200),
+                    "sex" = rep(x = c("female", "male"), each = 100),
+                    "age" = round(
+                      x = rnorm(n = 200, mean = 45, sd = 3) + 
+                        rexp(n = 200, rate = 1/4),
+                      digits = 0),
+                    "height" = round(
+                      x = rnorm(n = 200, 
+                                mean = rep(x = c(170.7, 179.8), each = 100),
+                                sd = rep(x = c(6.35, 7.62), each = 100)), 
+                      digits = 0)) |>
+  dplyr::mutate("blood_pressure" = round(x = 
+                  96.6 + 16 * as.numeric(sex == "male") + 
+                  0.7 * age - 0.4 * age * as.numeric(sex == "male") +
+                  rnorm(n = 200, mean = 0, sd = 3), digits = 1))
+```
+
+1. Fit a linear model that includes age, sex, and their interaction for the 
+blood pressure data.
+
+```{r}
+lm_0 <- lm(formula = blood_pressure ~ age + sex + age * sex, data = blood)
+summary_lm0 <- summary(object = lm_0)
+```
+
+1. Using the output of the linear model test the Null hypothesis that states 
+$H_0: \beta_0 = 97$.
+
+```{r}
+t_stat_b0 <- (lm_0$coefficients[1] - 97) / summary_lm0$coefficients[1, "Std. Error"]
+
+ifelse(test = abs(t_stat_b0) > abs(qt(p = 0.025, df = 199)),
+       yes = "Reject the NUll",
+       no = "Fail to reject the Null")
+```
+
+1. Test the Null hypothesis that states that the difference in the expected 
+blood pressure of males and females are two units apart.
+
+```{r}
+
+```
+
+1. Test the Null hypothesis that states that expected blood pressure of females 
+changes by 1 unit as a function of age.
+
+1. Under the Null hypothesis that there is no interaction between age and sex, 
+what is the probability of obtaining a t-statistic of 3 or something more 
+extreme.
