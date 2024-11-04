@@ -1,0 +1,72 @@
+---
+title: "In Class Activity 8"
+author: "write your name here!"
+output: pdf_document
+date: "2024-10-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We will do this activity together, follow the instructions in class and answer 
+one question at a time.
+
+1. What is the sample size and which variables are included in our data file 
+`memory.csv` and what values can they take?
+
+**Ans:**
+
+2. What are the minimum, maximum, mean and standard deviation of the age and 
+performance variables?
+
+**Ans:**
+
+3. Plot the memory performance of participants as a function of age. What 
+trends can we see in the graph?
+
+**Ans:**
+
+4. Add a new variable to the data frame named `age_spline` that assigns the 
+value a value of $0$ to participants who are younger than $41$ years old and a 
+value of $age - 40$ to participants who are $41$ years old or older.
+
+**Ans:**
+
+5. Fit a linear model that includes the variable `age_spline` as a predictor
+of memory performance.
+
+**Ans:**
+
+6. What is the interpretation of the parameter $\beta_0$ and what is the 
+interpretation of the parameter $\beta_1$.
+
+**Ans:**
+
+7. Plot the estimated expected memory performance of participants in the task 
+as a function of age alongside the data.
+
+**Ans:**
+
+8. Plot the residuals of the model that includes the transformed age as a 
+predictor of memory performance. What can you tell from about the model from 
+the plot?
+
+**Ans:**
+
+9. Plot the autocorrelation of the residuals of the  model that includes the 
+transformed age as a predictor of memory performance. What can you tell from 
+about the model from the plot?
+
+**Ans:**
+
+10. Calculate the BIC of the model that includes age as a predictor and the model
+that includes the transformation of age. Which model accounts for the data 
+better?
+
+**Ans:**
+
+11. Does the model that include only age as a predictor fulfill the 
+assumptions about the errors in the linear model? Why?
+
+**Ans:**

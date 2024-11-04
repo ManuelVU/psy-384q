@@ -55,6 +55,7 @@ xaringanExtra::use_extra_styles(
   mute_unhighlighted_code = TRUE)
 
 cities <- readr::read_csv(file = here::here("week-05/data/cities.csv"))
+memory <- readr::read_csv(file = here::here("week-06/data/memory.csv"))
 ```
 
 ### In class activity
@@ -566,13 +567,9 @@ and the end of the year.
 ---
 ### Cosine function
 
-- If we assume that those values are symmetric what we want is a function that 
-assigns small or negative values to the first and last months and assigns
-positive values near to month 7.
-
---
-
-- One function that can do something like this is the cosine function.
+- If we assume the values are symmetric, what we want is a function that 
+assigns negative numbers to the first and last months and assigns
+positive numbers to summer months.
 
 --
 
@@ -783,5 +780,4 @@ problem, we could add other transformations or covariates.
 however, the problem of which transformation to use is difficult to solve and 
 most of the time we will try to avoid it.
 
-
-
+---

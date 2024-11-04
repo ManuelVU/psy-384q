@@ -1,0 +1,504 @@
+---
+title: "Transformation of Covariates: Splines"
+subtitle: "Lecture 7"  
+author: 
+  - "Manuel Villarreal"
+date: '09/30/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+
+memory <- readr::read_csv(file = here::here("week-06/data/memory.csv"))
+```
+
+### Linear Splines
+
+- A common type of functions used in linear models are known as step functions.
+
+--
+
+- As it name suggests, step functions are rules where the value assigned 
+changes abruptly. 
+
+--
+
+- For example, we could have a linear function that assigns the value 0 to 
+participants that are younger than 21 years of age and the value of 1 to anyone
+that is older than 21.
+
+--
+
+- Using step functions will allow us to stratify groups based on continuous 
+variables.
+
+--
+
+- Furthermore, we could modify these functions in order to have something 
+that resembles an interaction.
+
+--
+
+- Let's look at an example with a memory experiment.
+
+---
+### Example: Memory
+
+- Researchers carried out an experiment to study how memory changes as a 
+function of age in Young and Elderly populations.
+
+--
+
+- The study consisted of multiple memory tasks that the researchers have used 
+to calculate an index that reflects the performance of each participant in 
+the task.
+
+--
+
+- Let's first look at the data file and make a plot. 
+
+--
+
+Open the file `in-class-08.Rmd` and follow the instructions.
+
+---
+### Example: memory
+
+- Answer questions one and two from the in class activity
+
+--
+
+```{r, echo=FALSE}
+DT::datatable(
+  data = memory,
+  options = list(pageLength = 5), 
+  rownames = FALSE,
+  class = 'cell-border stripe')
+```
+
+---
+### Example: memory
+
+- Now that we have looked at the data let's start by plotting performance as a 
+function of age and see if we can find any trends (question 3 `in-class-08.Rmd`).
+
+--
+
+```{r, echo=FALSE, out.width="42%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 3.5, 0.5, 0.5))
+
+plot(x = memory$age, y = memory$performance,ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "#f8971f", cex = 2, col = "white", cex.axis = 1.5)
+mtext(text = "Age", side = 1, line = 2.5, cex = 2)
+mtext(text = "Memory performance", side = 2, line = 2.5, cex = 2)
+```
+
+---
+### Example: memory
+
+- From the plot it seems like the memory performance of participants in the 
+experiment decays with age.
+
+--
+
+- First let's look at a linear model that includes age as a predictor of memory 
+performance and look at the residuals to see if a linear regression is enough.
+
+--
+
+.pull-left[
+```{r, echo=FALSE, out.width="72%"}
+lm_age <- lm(formula = performance ~ age, data = memory)
+
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 3.5, 0.5, 0.5))
+
+plot(x = memory$age, y = memory$performance,ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "#f8971f", cex = 2, col = "white", cex.axis = 1.5)
+mtext(text = "Age", side = 1, line = 2.5, cex = 2)
+mtext(text = "Memory performance", side = 2, line = 2.5, cex = 2)
+abline(a = lm_age$coef[1], b = lm_age$coef[2], lty = 2, col = "red", lwd = 4)
+```
+
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width="72%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 4, 0.5, 0.5))
+
+plot(x = memory$age, y = lm_age$residuals, ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "slategray", cex = 2, cex.axis = 1.5)
+abline(h = 0, lwd = 4, lty = 2)
+mtext(text = "Age", side = 1, line = 2.5, cex = 2)
+mtext(text = "Reiduals", side = 2, line = 3, cex = 2)
+```
+]
+
+---
+### Example: memory
+
+- From the data it seems like participants between 20 and 40 years of age get 
+similar memory performance scores.
+
+--
+
+- However, the scores for people who are over 40 seem to decrease rapidly in 
+our sample.
+
+--
+
+- What can we do with this?
+
+--
+
+- The effect of age seems to change abruptly after 40 years old.
+
+--
+
+- Age does not seem to affect the memory performance of participants younger 
+than 40 but it decays for people that are older.
+
+--
+
+- One possible solution would be to stratify using an age group, for example, 
+we could set our two groups to people who are older or younger than 40 years
+old.
+
+---
+### Example: memory
+
+- Another way to look at the problem is to think of the effect of age on memory
+performance as a step function.
+
+--
+
+- For example, we know that memory performance is constant as a function of age
+for people who are younger than 40 years old.
+
+--
+
+- That means that we can describe the performance of people younger than 20 
+with just one parameter that is not associated with age.
+$$\text{Performance}_i = \beta_0 + \epsilon_i, \text{if Age}_i \leq 40$$
+
+--
+
+- And then for participants that are older than 40 we would like the model to 
+have the following form
+$$\text{Performance}_i = \beta_0 + \beta_1\text{Age}_i + \epsilon_i, \text{if Age}_i > 40$$
+
+---
+### Example: memory
+
+- Now because of how our data looks, we want to make sure that the only 
+difference between a person who is 40 years old, and a person that is 41 years 
+old is equal to $\beta_1$.
+
+--
+
+- All this means that we want the following equation to be true:
+\begin{equation}
+\beta_1f(\text{Age}_i) = \left\{
+  \begin{array}{lr}
+    0 & \text{if } \text{Age}_i \leq 40\\
+    \beta_1(\text{Age}_i - 40) & \text{if } \text{Age}_i > 40
+  \end{array}
+\right.
+\end{equation}
+
+--
+
+- Which means that
+\begin{equation}
+\text{Memory_i} = \left\{
+  \begin{array}{lr}
+    \beta_0 +\epsilon_i & \text{if } \text{Age}_i \leq 40\\
+    \beta_0 +\beta_1(\text{Age}_i - 40) +\epsilon_i & \text{if } \text{Age}_i > 40
+  \end{array}
+\right.
+\end{equation}
+
+---
+### Example: memory
+
+- Therefore, we have that the difference between a person who is 40 years old 
+and a person who is 41 is:
+$$\mathrm{E}(\text{Memory}_i\mid \text{Age}_i = 40) - \mathrm{E}(\text{Memory}_i\mid \text{Age}_i = 41) =\\ \beta_0 - (\beta_0 +\beta_1(41 - 40))$$
+$$\mathrm{E}(\text{Memory}_i\mid \text{Age}_i = 40) - \mathrm{E}(\text{Memory}_i\mid \text{Age}_i = 41) = -\beta_1$$
+
+--
+
+- We can generate a variable in R that assigns a value of $0$ to 
+participants who are younger than $41$ years old and a value of 
+$\text{Age}_i - 40$ to participants that are $41$ years old or older.
+
+---
+### Example: memory
+
+- Add a new variable to the data frame named `age_spline` that assigns the 
+value a value of $0$ to participants who are younger than $41$ years old and a 
+value of $age - 40$ to participants who are $41$ years old or older 
+(question 4 `in-class-08.Rmd`).
+
+--
+
+- There are multiple ways to add a variable to a data frame. One that you can 
+find in the cheat-sheets is:
+
+```{r}
+memory <- memory |> 
+  dplyr::mutate("age_spline" = ifelse(test = age > 40, 
+                                      yes = age - 40,
+                                      no = 0))
+```
+
+--
+
+- This new column (variable) is our function of age denoted as 
+$f(\text{Age}_i)$.
+
+---
+### Example: memory
+
+- Now we can fit a linear model that includes our transformed variable as a 
+covariate. 
+
+--
+
+- In this case we do not need to add the variable itself, as the transformation 
+is already taking into account the two types of effects we saw in the data 
+(question 5 `in-class-08.Rmd`). 
+
+--
+
+```{r}
+lm_age_40 <- lm(formula = performance ~ age_spline, data = memory)
+```
+
+---
+### Parameter interpretation
+
+- Now we can interpret the estimated values of the parameters in our model 
+(question 6 `in-class-08.Rmd`).
+
+--
+
+- The estimated value of the parameter $\beta_0$ was equal to 
+`r round(x = lm_age_40$coef[1], digits = 2)`. 
+
+- The memory performance of participants who are 40 years old or younger was 
+equal to `r round(x = lm_age_40$coef[1], digits = 2)`.
+
+--
+
+- The estimated value of the parameter $\beta_1$ was equal to 
+`r round(x = lm_age_40$coef[2], digits = 2)`.
+
+- The memory performance of participants who are 41 years old or older 
+decreases by `r round(x = abs(lm_age_40$coef[2]), digits = 2)` units on average 
+per year.
+
+---
+### Predictions of a Spline model
+
+- Add the predictions of your new linear model to the plot of participant's 
+memory performance as a function of age (question 7 `in-class-08.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 3.5, 0.5, 0.5))
+
+plot(x = memory$age, y = memory$performance,ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "#f8971f", cex = 2, col = "white", cex.axis = 1.5)
+mtext(text = "Age", side = 1, line = 2.5, cex = 2)
+mtext(text = "Memory performance", side = 2, line = 2.5, cex = 2)
+curve(expr = lm_age_40$coefficients[1] + 
+        lm_age_40$coefficients[2] * (x > 40) * (x - 40),
+      lwd = 4, lty = 2, col = "red", from = 19, to = 76, n = 100, 
+      add = TRUE)
+```
+
+---
+### Residuals
+
+- Plot the model residuals as a function of age (question 8 `in-class-08.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 4, 0.5, 0.5))
+
+plot(x = memory$age, y = lm_age_40$residuals, ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "slategray", cex = 2, cex.axis = 1.5)
+abline(h = 0, lwd = 4, lty = 2)
+mtext(text = "Age", side = 1, line = 2.5, cex = 2)
+mtext(text = "Reiduals", side = 2, line = 3, cex = 2)
+```
+
+---
+### Autocorrelation
+
+- Plot the autocorrelation of the model's residuals 
+(question 9 `in-class-08.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+acf(x = lm_age_40$residuals, bty = "l", las = 1, lwd = 2, 
+    xlab = "Lag", ylab = "Autocorrelation", 
+    main = expression(paste("Residuals: performance ~ f(age)")),
+    cex.lab = 1.5, cex.main = 1.6)
+
+bic_age <- BIC(lm_age)
+bic_age_40 <- BIC(lm_age_40)
+```
+
+---
+### Evaluation: BIC
+
+- How can we evaluate our new model that uses a transformation of age? Well, 
+like we have done before, we can compare models using the BIC 
+(question 10 `in-class-08.Rmd`).
+
+--
+
+- The estimated BIC for the model that includes only age was 
+`r round(x = bic_age, digits = 2)`, while the BIC of the model that includes 
+the transformation was `r round(x = bic_age_40, digits = 2)`.
+
+--
+
+- The model that assumes that there is a change in the effect of age in memory
+performance only for those participants who are older than 40 accounts for the 
+data better according to the BIC.
+
+---
+### Evaluation: Residuals
+
+- However, in this case we can evaluate the adequacy of the linear model 
+assumptions (question 11 `in-class-08.Rmd`).
+
+--
+
+- The residuals of the model that includes only age as a covariate show a bias
+as a function of age, with a general trend that increases for participants who
+are 20 to 40 years of age and the decreases as participants get older.
+
+--
+
+- The model that includes the transformation doesn't show this patter, the 
+residuals seem to be centered at 0 and have a constant variance across 
+participant's ages. Additionally, the low autocorrelation of the residuals
+suggests that observations might be independent.
+
+---
+### What are linear splines?
+
+- The linear model that we just used is known as a linear spline.
+
+--
+
+- A linear spline is a method where two or more straight lines are used to 
+account for multiple linear patters in a data set.
+
+--
+
+- Notice that what we did was basically join two independent lines together at 
+a given point. 
+
+--
+
+- This point is known as a node, while the lines are known as splines.
+
+--
+
+- In theory we could join any number of lines together in order to approximate 
+any data patter.
+
+--
+
+- Think about our example with the average temperature of two cities. 
+
+--
+
+- In theory we could glue together multiple lines that increase as we move
+towards the summer months with a line that decreases during the winter.
+
+---
+### Linear splines
+
+- Would a model that includes multiple straight lines be better than a model 
+that uses a continuous transformation?
+
+--
+
+- The answer (as is often the case in statistics) is: It depends.
+
+--
+
+- For example, if we need more than 3 straight lines to account for the 
+temperature data, but only two continuous transformations (like the cosine 
+function in our example). 
+
+--
+
+- Then it might be the case that the continuous transformations would be better.
+
+--
+
+- Regardless of the transformation that we use our approach would be the same.
+
+--
+
+- First we fit the models and then we compare the residuals and use the BIC to 
+select the model that better accounts for our data.

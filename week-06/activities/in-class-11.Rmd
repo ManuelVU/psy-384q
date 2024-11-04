@@ -1,0 +1,107 @@
+---
+title: "In class activity 11"
+author: "Manuel Villarreal"
+date: "2024-10-30"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Generate the mean of a random variable $\mu$ using the linear function for
+5 different values of x that go from 1 to 5 each repeated 6 times. You can 
+choose any values for the parameters $\beta_0$ and $\beta_1$.
+
+**Ans:**
+
+2. Generate a vector of variances named `variance_obs` using the following format
+$\mathrm{Var}(\epsilon_i\mid x) = 1 + \frac{x - 1}{2}$.
+
+**Ans:**
+
+3. Generate a vector of 30 observations $Y$ with the following properties:
+$$y_i \sim \mathrm{Normal}(\beta_0 + \beta_1x_{i1}, \sigma^2_i)$$
+(*Note:* you can do this using the function `rnorm` and the variables from 
+questions 1 and 2).
+
+**Ans:**
+
+4. Make a plot of the data you just generated and add the regression line 
+(question 4, `in-class-11.Rmd`)
+
+**Ans:**
+
+5. Fit a linear model to your observations and compare the estimated values 
+$\hat\beta_0$ and $\hat\beta_1$ with the real values used in your simulation.
+
+**Ans:**
+
+6. Plot the residuals of the model as a function of the predictor and describe 
+the plot, including any trends that you can see
+
+**Ans:**
+
+7. Now let's simulate 10,000 experiments.
+
+**Ans:**
+
+8. Make a histogram of the estimated values of $\hat\beta_0$, use the argument
+`freq = FALSE` to have the y axis be a density and not a count.
+
+**Ans:**
+
+9. Make a histogram of the estimated values of $\hat\beta_1$, use the argument
+`freq = FALSE` to have the y axis be a density and not a count.
+
+**Ans:**
+
+10. Calculate the $95\%$ confidence interval for each $\hat\beta_0$ obtained
+in the simulation, the result should be a matrix with 10,000 rows (one for 
+each simulation) and two columns, one for the lower and upper bound 
+respectively.
+
+**Ans:**
+
+11. Calculate the proportion of times that the true value of the parameter 
+$\beta_0$ is contained between the lower and upper bound you calculated. Is this
+proportion greater, lower or equal to the theoretical coverage probability 
+$(0.95)$.
+
+**Ans:**
+
+12. Calculate the $95\%$ confidence interval for each $\hat\beta_1$ obtained
+in the simulation, the result should be a matrix with 10,000 rows (one for 
+each simulation) and two columns, one for the lower and upper bound 
+respectively. Like we did with $\beta_0$ estimate the proportion of times that 
+the true value of the parameter $\beta_1$ is contained between the two bounds. 
+Is the proportion greater, lower or equal to the theoretical coverage 
+probability $(0.95)$.
+
+**Ans:**
+
+13. Create a vector named `h` that includes the diagonal elements in of the 
+hat matrix for your simulations. **Notice** that the hat matrix does not change 
+across simulations of the experiment.
+
+**Ans:**
+
+14. Calculate the matrix $\widehat{\mathrm{Var}(\epsilon)}$ and save it with 
+the name `hat_residuals` (`hint:` if you use the function `diag` and use a 
+vector instead of a matrix as the argument the result with be a diagonal matrix 
+that includes the elements of the vector in the main diagonal).
+
+**Ans:**
+
+15. Calculate the corrected variance of the OLS estimators.
+
+**Ans:**
+
+16. Estimate the $95\%$ confidence interval for the parameters $\betaa_0$ and 
+$\beta_1$ using the variance matrix that you found in 15, and compare them with 
+the ones found using the output of the `summary` function of an `lm` model, 
+are they larger or smaller?
+
+**Ans:**
+
+

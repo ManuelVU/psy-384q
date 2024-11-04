@@ -1,0 +1,839 @@
+---
+title: "Confidence Intervals"
+subtitle: "Lecture 9"
+author: 
+  - "Manuel Villarreal"
+date: '09/30/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+
+rotations <- readr::read_csv(file = here::here("week-06/data/rotations.csv"))
+```
+### Confidence Intervals
+
+- The main assumptions of a linear model are:
+
+--
+
+  1. Errors have an expectation of 0.
+  
+--
+
+  1. Errors are independent.
+  
+--
+
+  1. Errors are identically distributed.
+  
+--
+
+  1. Errors have constant variance.
+  
+--
+
+- From previous lectures we know that when these assumptions are met in a linear
+model, then the Ordinary Least Squares estimators $\hat\beta_0, \hat\beta_1, \dots, \hat\beta_p$ will follow approximately a Normal distribution.
+
+---
+### Confidence Intervals
+
+- Formally we have that:
+$$\hat\beta_j \sim \mathrm{Normal}\left(\beta_j, \mathrm{Var}(\beta_j)\right)$$
+
+--
+
+- Where $\hat{\mathrm{Var}(\beta_j)}$ represents the estimated variance of 
+$\beta_j$.
+
+--
+
+- Given that we know the distribution of of our estimators, one question that 
+we might ask ourselves is: What is the probability that our estimator 
+$\hat\beta_j$ will fall between two values?
+
+---
+### Confidence Intervals
+
+- Let's say that we want to find two values a lower limit $l$ and an upper
+limit $u$ for which the probability that our estimator will take a value between
+those limits is equal to 0.95.
+
+--
+
+- In other words, we want to find two values $l$ and $u$ for which the probability
+below $l$ or above $u$ is equal to $0.025$.
+
+--
+
+- This is a similar problem as the one of computing a critical value.
+
+--
+
+- Remember that when we want to test a hypothesis we have to use a statistic, 
+which as a value that does not depend on the parameters of the model.
+
+--
+
+- The statistic that we built for our parameters $\beta_j$ in the linear
+model was:
+$$\frac{\hat\beta_j - \beta_j}{\mathrm{S.E}(\hat\beta_j)}\sim T_{n-p}$$
+
+---
+### Confidence Intervals
+
+- Let's see if we can use what we know about this probability distribution to 
+find two values that will contain our parameter with a probability of 0.95.
+
+--
+
+- Let's denote the $2.5%$ and $97.5%$ quantiles of the $T_{n-p}$ distribution as
+$t_{0.025}$ and $t_{0.975}$ respectively.
+
+--
+
+- By definition of the quantiles of a probability distribution we know that:
+$$P\left(t_{0.025} \leq \frac{\hat\beta_j - \beta_j}{\mathrm{S.E}(\hat\beta_j)} \leq t_{0.975}\right) = 0.95$$
+
+--
+
+- Now, because the parameter that we want to build an interval for is $\beta_j$
+we need to isolate it in the equation.
+
+---
+### Confidence Intervals
+
+- Start by multiplying all parts of the inequality by the estimated 
+standard error of $\hat\beta_j$
+$$P\left(t_{0.025}\cdot \mathrm{S.E}(\hat\beta_j) \leq \hat\beta_j - \beta_j \leq t_{0.975}\cdot \mathrm{S.E}(\hat\beta_j)\right) = 0.95$$
+
+--
+
+- Because we multiplied both sides of the inequality by the same number nothing
+else has changed.
+
+--
+
+- Now let's subtract the value of $\hat\beta_j$ from all sides of the 
+inequality
+$$P\left(t_{0.025}\cdot \mathrm{S.E}(\hat\beta_j) - \hat\beta_j \leq - \beta_j \leq t_{0.975}\cdot \mathrm{S.E}(\hat\beta_j) - \hat\beta_j\right) = 0.95$$
+
+---
+### Confidence Intervals
+
+- We can finish by multiplying all parts of the inequality by $-1$:
+$$P\left(-t_{0.025}\cdot \mathrm{S.E}(\hat\beta_j) + \hat\beta_j \geq \beta_j \geq -t_{0.975}\cdot \mathrm{S.E}(\hat\beta_j) + \hat\beta_j\right) = 0.95$$
+
+--
+
+- Notice that because we have multiplied the inequality by a negative number we 
+have to change the direction of the inequality signs. However, the probability
+remains constant.
+
+--
+
+- Now we can define our lower and upper bound using the inequality:
+$$l = \hat\beta_j - t_{0.975} \cdot \mathrm{S.E}(\hat\beta_j) \\
+u = \hat\beta_j - t_{0.025} \cdot \mathrm{S.E}(\hat\beta_j)$$
+
+--
+
+- We can even simplify this further. Remember that one of the characteristics of
+the $T$ distribution is its symmetry around 0. Therefore, we know that 
+$t_{0.975} = -t_{0.025}$.
+
+---
+### Confidence Intervals
+
+- Given that we have used the probability distribution of our statistic to 
+build thins interval, one could ask why we call it confidence interval and not
+a probability interval.
+
+--
+
+- This has to do with one of the main assumptions of classical statistics, which
+states: The parameters in a population are constant. 
+
+--
+
+- In other words, $\beta_j$ should be a constant value in the population and 
+therefore, it does not have a probability distribution.
+
+--
+
+- The same is true for our estimators, once we calculate them using a sample 
+they are known quantities and do not have a probability distribution.
+
+--
+
+- This is a hard concept to understand, however, you can think of it as two 
+different stages of theory development. 
+
+---
+### Confidence Intervals
+
+- In the first one, before we take a sample of the population, we are uncertain 
+about the values that we will observe, and therefore we can treat them as random
+variables.
+
+--
+
+- In contrast, once we have taken our sample all of our variables are now fixed
+so they do not have a probability distribution, however, we can still use the 
+tools we develop before, we just have to talk about the differently.
+
+--
+
+- In this case for example, when we calculate our two boundaries or limits $l$ 
+and $u$ we can talk about confidence instead of probability.
+
+--
+
+- This word translates into "We believe that if we where to repeat our 
+experiment an infinite number of times, the population parameter $\beta_j$ would
+be contained in the interval between $l$ and $u$ in $95\%$ of all the 
+experiments".
+
+---
+### Confidence Intervals
+
+- Notice that there is nothing stopping us from finding other intervals that have
+a higher probability.
+
+--
+
+- Let's say that we want to find the values $l$ and $u$ that will contain the 
+true value of the parameter $\beta_j$ with a probability $1-\alpha$, with 
+$\alpha < 1$
+
+--
+
+- In other words, we want to find $l$ and $u$ such that:
+$$P\left(l \leq \frac{\hat\beta_j - \beta_j}{\mathrm{S.E}(\hat\beta_j)} \leq u\right) = 1-\alpha$$
+
+---
+### Confidence Intervals
+
+- Again, because we know the distribution of our statistic we know that:
+$$P\left(t_{\alpha/2} \leq \frac{\hat\beta_j - \beta_j}{\mathrm{S.E}(\hat\beta_j)} \leq t_{1-\alpha/2}\right) = 1-\alpha$$
+
+--
+
+- Therefore, we can follow the same steps as before and find that:
+$$P\left(\hat\beta_j - t_{1-\alpha/2} \cdot \mathrm{S.E}(\hat\beta_j) \leq \beta_j \leq \hat\beta_j - t_{\alpha/2}\cdot \mathrm{S.E}(\hat\beta_j) \right) = 1-\alpha$$
+
+--
+
+- With this we can find any confidence interval for the parameter $\beta_j$.
+
+--
+
+- For example, setting $\alpha = 0.01$ will give us a $99\%$ confidence interval, 
+while setting $\alpha = 0.05$ gives us a $95\%$ confidence interval.
+
+---
+### Confidence Intervals and NHT
+
+- By now you might have noticed that the values $t_{\alpha/2}$ and 
+$t_{1-\alpha/2}$ are very similar to the critical values that we found for a 
+Null Hypothesis Test.
+
+--
+
+- These are the same values, which means that there is a strong connection 
+between confidence intervals and a NHT.
+
+--
+
+- For example, say that you want to test the Null that $\beta_j = \theta$. One 
+approach would be to calculate calculate the p-value of the t-statistic under 
+the null hypothesis and compare it to the level $\alpha$ set for the experiment.
+
+--
+
+- Another approach would be to calculate the $1 - \alpha$ confidence interval 
+and check if the value in the Null hypothesis $\theta$ is in between the 
+upper and lower bound of the confidence interval.
+
+--
+
+- Let's test our theory using a simulation.
+
+---
+### Example: Mental rotation
+
+- Now we will calculate the confidence intervals for an example data set.
+
+--
+
+Psychologists want to study how the rotation of a two dimensional figure affects
+the time (in milliseconds) it takes participant's to `correctly` identify the 
+figure. To do this they design an experiment in which participants are presented
+first with a two dimensional figure for 30 seconds. After those 30 seconds there
+is a 30 second inter-stimulus interval and then the next figure is presented. 
+The participant's objective is to identify if the second figure is the same as 
+the one presented at the start of the trial.
+
+--
+
+- Open the file `in-class-10.Rmd` and follow the instructions for question 1.
+
+---
+### Example: Mental rotation
+
+- Notice that in the description we can see that researchers are only interested
+in the response time for trials in which the participant correctly identifies
+the figure, that means that we can remove all trials in which participants made
+a mistake (we can remove all cases in which `correct == 0`).
+
+```{r}
+rotations <- rotations |> 
+  subset(subset = correct == 1)
+```
+
+---
+### Fitting a linear model
+
+- Now that we have the population that we are interested in studying, lets fit
+a linear model to the response time  as a function of rotation angle 
+(question 2 `in-class-10.Rmd`).
+
+--
+
+```{r}
+# linear model
+lm_angle <- lm(formula = response_time ~ angle, data = rotations)
+# summary of lm to access s.e(beta)
+sum_lm_angle <- summary(lm_angle)
+```
+
+---
+### Fitting a linear model
+
+- Interpret the parameters of the model (question 3 and 4 `in-class-10.Rmd`).
+
+--
+
+  1. The estimated value of $\beta_0$ was 
+  `r round(x = lm_angle$coef[1], digits = 2)`, which means that it takes 
+  participants `r round(x = lm_angle$coef[1], digits = 2)` milliseconds on 
+  average to correctly identify that the presented figure was the same.
+  
+--
+
+  1. The estimated value of $\beta_1$ was 
+  `r round(x = lm_angle$coef[2], digits = 2)`, which means that it takes 
+  participants `r round(x = lm_angle$coef[2], digits = 2)` milliseconds more on 
+  average to correctly identify a figure that has been rotated by one degree 
+  more in comparison to a figure that has been rotated by $\theta$ degrees. 
+
+---
+### Confidence Interval
+
+- Calculate the $95\%$ confidence interval for $\beta_0$ 
+(question 5 `in-class-10.Rmd`).
+
+--
+
+```{r}
+n <- dim(rotations)[1]
+p <- 2
+t_crit <- qt(p = 0.975, df = n - p)
+
+ci_95 <- lm_angle$coef[1] + c(-1, 1) * t_crit *
+  sum_lm_angle$coefficients['(Intercept)','Std. Error']
+```
+
+--
+
+- The confidence interval for the parameter $\beta_0$ was equal to 
+`r round(x = ci_95, digits = 2)`.
+
+--
+
+- How can we interpret the $95\%$ confidence interval for the intercept? 
+(question 6 `in-class-10.Rmd`).
+
+--
+
+- We are $95\%$ confident that participants take between 
+`r round(x = ci_95[1], digits = 2)` and  `r round(x = ci_95[2], digits = 2)`
+milliseconds to correctly identify a figure that has not been rotated.
+
+---
+### Confidence Interval
+
+- Calculate the $95\%$ confidence interval for $\beta_1$ 
+(question 7 `in-class-10.Rmd`).
+
+--
+
+```{r}
+ci_95 <- lm_angle$coef[2] + c(-1, 1) * t_crit *
+  sum_lm_angle$coefficients['angle','Std. Error']
+```
+
+--
+
+- The $95\%$ confidence interval for the slope associated with rotation angle
+was `r round(x = ci_95, digits = 2)`.
+
+--
+
+- How can we interpret the $95\%$ confidence interval for the slope associated 
+with rotation angle? (question 8 `in-class-10.Rmd`).
+
+--
+
+- We can be $95\%$ confident that participants take on average between 
+`r round(x = ci_95[1], digits = 2)` and `r round(x = ci_95[2], digits = 2)` 
+milliseconds more to correctly identify a figure that has been rotated 
+$\theta + 1$ degrees in comparison to a figure that has been rotated by 
+$\theta$.
+
+---
+### Null hypothesis test
+
+- Test the Null hypothesis that $\beta_0 = 1520$ with an $\alpha$ level of 
+$0.01$ (question 9 `in-class-10.Rmd`).
+
+--
+
+- Remember that we can test this hypothesis by constructing the $1-\alpha$ 
+confidence interval and then checking if the value of 1520 is inside the 
+interval. If it is then we fail to reject the Null.
+
+```{r}
+alpha <- 0.01
+t_crit <- qt(p = 1 - alpha / 2, df = n - p)
+ci_99 <- lm_angle$coef[1] + c(-1, 1) * t_crit *
+  sum_lm_angle$coefficients['(Intercept)','Std. Error']
+```
+
+--
+
+- The $99\%$ confidence interval for the parameter $\beta_0$ was 
+`r round(x = ci_99, digits = 2)`, which contains the value specified in the 
+Null hypothesis $H_0:\beta_0 = 1520)$, therefore, we fail to reject the Null.
+
+---
+### Null hypothesis test
+
+- Test the Null hypothesis that $\beta_1 = 0$ at an $\alpha$ level of $0.005$ 
+(question 8 `in-class-10.Rmd`)
+
+--
+
+- Again we just need to compute the $1-\alpha$ confidence interval and check if 
+the value $0$ is contained in it or not.
+
+```{r}
+alpha <- 0.005
+ci_beta_1 <- lm_angle$coef[2] + c(-1, 1) * qt(p = 1 - alpha / 2, df = n - p) *
+  sum_lm_angle$coefficients['angle','Std. Error']
+```
+
+- The $99.5\%$ confidence interval for the parameter $\beta_1$ which is the 
+slope associated with the angle of rotation of a figure was 
+`r round(x = ci_beta_1, digits = 2)` which does not include 0.
+
+--
+
+- Therefore, we can reject the Null Hypothesis that $\beta_1 = 0$ at an $\alpha$
+level of $0.005$.
+
+---
+### Null hypothesis test
+
+- Calculate the p-value for a t-test for the Null hypothesis $\beta_1 = 0$. Is
+the p-value lower or greater than $0.005$ (question 11 `in-class-10.Rmd`).
+
+--
+
+- To solve this problem first we need to calculate the value of our test 
+statistic and then calculate its p-value.
+
+```{r}
+t_stat <- lm_angle$coef[2] / sum_lm_angle$coefficients['angle','Std. Error']
+
+p_value <- 2 * pt(q = t_stat, df = n - p, lower.tail = FALSE)
+```
+
+--
+
+- The value of our t-statistic for the Null hypothesis $H_0:\beta_1 = 0$ was
+equal to `r round(x = t_stat, digits = 2)`, which has an associated p-value of 
+for a T distribution with  `r nrow(rotations) - 2` degrees of freedom. Given 
+that the p-value is less than our $\alpha$ level we can reject the Null
+hypothesis $H_0:\beta_1 = 0$ at a  $0.005$ level.
+
+---
+### Confidence interval for the regression line
+
+- Another confidence interval that we can build is the $(1-\alpha)\%$ interval 
+for the regression line $\hat\mu$.
+
+--
+
+- Remember that we can express the regression line as:
+$$\hat\mu = \hat\beta_0 + \hat\beta_1x_{i1} = X\hat\beta$$
+
+--
+
+- If the model assumptions are met then we know that
+$$\hat\mu \dot\sim \mathrm{Normal}(X\hat\beta, Var(X\hat\beta))$$
+
+--
+
+- with $\widehat{Var(\hat\mu)} = X\mathrm{V}ar(\hat\beta)X^T = \sigma^2X(X^TX)^{-1}X^T$. We can actually get the variance/covariance matrix
+of our parameters easily in R using the following function.
+
+```{r}
+var_beta <- vcov(lm_angle)
+```
+
+---
+### Confidence interval for the regression line
+
+- Create a new matrix named "X" with as many rows as observations in the 
+experiment, and two columns. Make all values in the first column be equal to 1, 
+and set the second column to be equal to the rotation angle of each observation
+(question 12, `in-class-10.Rmd`).
+
+--
+
+```{r}
+x <- cbind(rep(x = 1, times = dim(rotations)[1]),
+           rotations$angle)
+```
+
+--
+
+- Use this new matrix to estimate the variance of the regression line, first you
+will need to estimate the variance of the errors $\hat\sigma^2$  
+(question 13, `in-class-10.Rmd`).
+
+--
+
+```{r}
+hat_mu <- x %*% lm_angle$coefficients
+hat_sigma <- sum((rotations$response_time - hat_mu)^2) / (n - p)
+var_hat_mu <- diag(x %*% vcov(lm_angle) %*% t(x))
+```
+
+---
+### Confidence interval for the regression line
+
+- Now that we have the variance of the regression line we can estimate the upper
+and lower bound for the $100(1 - \alpha)\%$ confidence interval.
+
+--
+
+- Notice that each bound will be a line instead of a single point.
+
+--
+
+- Estimate the $85\%$ confidence interval for the regression line 
+(question 14, `in-class-10.Rmd`).
+
+--
+
+```{r}
+alpha <- 0.15
+ci_hat_mu_85 <- cbind(
+  hat_mu - qt(p = 1 - alpha / 2, df = n - p) * sqrt(var_hat_mu),
+  hat_mu + qt(p = 1 - alpha / 2, df = n - p) * sqrt(var_hat_mu))
+```
+
+--
+
+- Each value in a row will represent the $85\%$ confidence interval for a single
+observation. Therefore it will cause problems when we try to plot these values.
+
+---
+### Plotting the CI for a regression line
+
+- Because we have used each angle presented to the participants in the 
+experiment we have multiple copies of the same confidence interval.
+
+--
+
+- As many copies as the number of times each value was presented. Notice that 
+from the definition of the confidence interval for $\hat\mu$ the only thing 
+we need is the variance of the estimated values and then some design matrix $X$.
+
+--
+
+- Instead of calculating a confidence interval for each rotation presented to 
+the participant we can pick the unique values in the experiment and use those 
+to estimate the confidence interval for the line.
+
+---
+### Plotting the CI for a regression line
+
+- Instead of using the matrix from the experiment we can create a new one to
+decide which rotation angles we use to calculate the confidence interval.
+
+--
+
+- Say that we want t make a plot that goes from 0 to 180 degrees, we can 
+create a new matrix $A$ and use it to estimate a new $\hat\mu$, 
+$\widehat{Var(\hat\mu)}$ and the corresponding intervals.
+
+--
+
+- For example:
+
+```{r}
+a <- cbind(rep(x = 1, times = 20),
+           seq(from = 0, to = 180, length = 20))
+hat_mu <- a %*% lm_angle$coefficients
+var_hat_mu <- diag(a %*% vcov(lm_angle) %*% t(a))
+alpha <- 0.15
+ci_hat_mu_80 <- cbind(
+  hat_mu - qt(p = 1 - alpha / 2, df = n - p) * var_hat_mu,
+  hat_mu + qt(p = 1 - alpha / 2, df = n - p) * var_hat_mu)
+```
+
+---
+### Plotting the CI for a regression line
+
+- Estimate the $85$ and $99\%$ confidence intervals using the new matrix and 
+make a plot that includes the regression line $\hat\mu$, the $85$ and $99\%$ 
+confidence intervals for the regression line (question 15, `in-class-10.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+alpha <- 0.01
+ci_hat_mu_99 <- cbind(
+  hat_mu - qt(p = 1 - alpha / 2, df = n - p) * var_hat_mu,
+  hat_mu + qt(p = 1 - alpha / 2, df = n - p) * var_hat_mu)
+
+plot(x = 0, y = 0, las = 1, bty = "l", xlim = c(0,180), ann = FALSE, 
+     ylim = c(1500, 2900))
+lines(x = a[, 2], y = hat_mu, col = "#005f86", lwd = 3)
+lines(x = a[, 2], y = ci_hat_mu_80[, 1], col = "#f8971f", lwd = 3, lty = 2)
+lines(x = a[, 2], y = ci_hat_mu_80[, 2], col = "#f8971f", lwd = 3, lty = 2)
+lines(x = a[, 2], y = ci_hat_mu_99[, 1], col = "tomato", lwd = 3, lty = 3)
+lines(x = a[, 2], y = ci_hat_mu_99[, 2], col = "tomato", lwd = 3, lty = 3)
+mtext(text = "Angle", side = 1, line = 2.4, cex = 1.6)
+mtext(text = "Response time", side = 2, line = 3, cex = 1.3)
+```
+
+---
+### CI for a regression line
+
+- Note that as we move away from the mean of the rotation angles 
+$(\bar{x}=$ `r mean(unique(rotations$angle))` $)$  the CI for the regression line
+start to curve a little.
+
+--
+
+- This is because we are more certain about the association between the response
+time and the rotation angle at the mean of the rotation angles.
+
+--
+
+- As we move away from that value, the variability in the slope associated with 
+the angle has a larger effect on the interval for the regression line.
+
+--
+
+- There is a last confidence interval that is commonly used in linear models, 
+this CI is known as a Prediction Interval.
+
+---
+### Prediction Interval
+
+- A prediction interval will try to answer the question of: what is the interval
+that will contain a new observation with a probability of $100(1-\alpha)\%$
+for a given value of $x$.
+
+--
+
+- In other words, we want to construct intervals for different rotation angles 
+that will contain a future observation with some probability.
+
+--
+
+- These new observations (which we don't have yet) can be denoted as $\hat{y}$, 
+then, we want to find $l$ and $u$ such that:
+$$P\left(l\leq\hat{y}\leq u\right) = 1-\alpha$$
+
+--
+
+- With $\hat{y}$ defined as:
+$$\hat{y} = \hat\beta_0+\hat\beta_1 x_0+\epsilon$$
+
+---
+### Prediction Interval
+
+- Notice that because $\hat{y}$ has not been observed yet, the value of $x_0$
+is not actually set, however, we can pick different values for it and create 
+multiple credible intervals like we did with the regression line.
+
+--
+
+- If the assumptions of the linear model are met then we know that:
+$$\mathrm{E}(\hat{y}) = \hat\mu = \hat\beta_0 + \hat\beta_1x_0$$
+
+--
+
+- Therefore, we know that
+$$\frac{\hat{y}-\hat{\mu}}{s.e(\hat{y})} \sim T_{n-p}$$
+
+--
+
+- So we need to find the variance of $\hat{y}$ in order to build our interval.
+
+---
+### Prediction Interval
+
+- Using linear algebra notation we can find the standard error of our predicted
+value of y $\hat{y}$:
+$$Var(\hat{y}) = Var\left(X_0\hat\beta + \epsilon\right)\\
+Var(\hat{y}) = Var\left(X_0\hat\beta\right) + Var(\epsilon)\\
+Var(\hat{y}) = X_0Var\left(\hat\beta\right)X_0^T + \sigma^2\\
+Var(\hat{y}) = \sigma^2 \left(X_0(X^TX)^{-1}X_0^T\right) + \sigma^2\\
+Var(\hat{y}) = \sigma^2 \left(1 + X_0(X^TX)^{-1}X_0^T\right)$$
+
+---
+### Prediction Interval
+
+- Notice that this is almost the same as the variance of $\hat\mu$ however, 
+there is now an added $\sigma^2$ which comes from the errors.
+
+--
+
+- Now we just need to replace the values of $\sigma^2$ for our estimated value 
+$\hat\sigma^2$ in order to calculate estimate our new confidence intervals.
+
+---
+### Prediction Interval
+
+- First we need a new design matrix $X_0$ that contains the values of the 
+rotation angles that would be presented to a new participant. 
+
+--
+
+- Create a new matrix `x_0` that contains in the second column 10 different 
+rotation values. Choose values that are between 0 and 180 
+(question 16, `in-class-10.Rmd`).
+
+--
+
+```{r}
+x_0 <- cbind(rep(x = 1, times = 10),
+             seq(from = 0, to = 180, length = 10))
+                         
+```
+
+---
+### Prediction Interval
+
+- Estimate the $85\%$ prediction interval (question 17, `in-class-10.Rmd`).
+
+--
+
+- We can estimate the $85\%$ prediction interval using the same procedure as 
+before:
+
+```{r}
+alpha <- 0.15
+sigma_2 <- sum(lm_angle$residuals^2) / (n-p)
+pred_85 <- cbind(hat_mu - qt(p = 1 - alpha / 2, df = n - p) * 
+                   sqrt(x = sigma_2 + diag(x_0 %*% vcov(lm_angle) %*% t(x_0))),
+                 hat_mu + qt(p = 1 - alpha / 2, df = n - p) * 
+                   sqrt(x = sigma_2 + diag(x_0 %*% vcov(lm_angle) %*% t(x_0))))
+```
+
+---
+### Prediction Interval
+
+- Estimate the $99\%$ prediction interval (question 18, `in-class-10.Rmd`).
+
+--
+
+- We can estimate the $99\%$ prediction interval using the same procedure as 
+before:
+
+```{r}
+alpha <- 0.01
+pred_99 <- cbind(hat_mu - qt(p = 1 - alpha / 2, df = n - p) * 
+                   sqrt(x = sigma_2 + diag(x_0 %*% vcov(lm_angle) %*% t(x_0))),
+                 hat_mu + qt(p = 1 - alpha / 2, df = n - p) * 
+                   sqrt(x = sigma_2 + diag(x_0 %*% vcov(lm_angle) %*% t(x_0))))
+```
+
+---
+### Prediction interval
+
+- Make a plot that allows you to compare the prediction interval and the 
+confidence interval for $\hat\mu$ (question 19, `in-class-10.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+plot(x = 0, y = 0, las = 1, bty = "l", xlim = c(0,180), ann = FALSE, 
+     ylim = c(800, 3500))
+lines(x = a[, 2], y = ci_hat_mu_80[, 1], col = "#f8971f", lwd = 3, lty = 2)
+lines(x = a[, 2], y = ci_hat_mu_80[, 2], col = "#f8971f", lwd = 3, lty = 2)
+lines(x = a[, 2], y = pred_85[, 1], col = "#f8971f", lwd = 3, lty = 1)
+lines(x = a[, 2], y = pred_85[, 2], col = "#f8971f", lwd = 3, lty = 1)
+lines(x = a[, 2], y = ci_hat_mu_99[, 1], col = "tomato", lwd = 3, lty = 2)
+lines(x = a[, 2], y = ci_hat_mu_99[, 2], col = "tomato", lwd = 3, lty = 2)
+lines(x = a[, 2], y = pred_99[, 1], col = "tomato", lwd = 3, lty = 1)
+lines(x = a[, 2], y = pred_99[, 2], col = "tomato", lwd = 3, lty = 1)
+mtext(text = "Angle", side = 1, line = 2.4, cex = 1.6)
+mtext(text = "Response time", side = 2, line = 3, cex = 1.3)
+```
+
+
+

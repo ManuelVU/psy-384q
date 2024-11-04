@@ -1,0 +1,735 @@
+---
+title: "Non-Constant Variance"
+subtitle: "Lecture 10"
+author: 
+  - "Manuel Villarreal"
+date: '09/30/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+```
+### Assumptions of the linear model
+
+- Remember the assumptions of the linear model:
+
+--
+
+  1. Errors have an expectation of 0 $\mathrm{E}(\epsilon) = 0$.
+  
+--
+
+  1. Errors are identically distributed 
+  $\epsilon_i \sim \left(\mathrm{E}(\epsilon), \mathrm{Var}(\epsilon)\right)$.
+  
+--
+
+  1. Errors are independent $\epsilon_i \perp \epsilon_j$ for all $i \neq j$
+  in $1, \dots, n$.
+
+--
+
+  1. Errors have constant variance $\mathrm{Var}(\epsilon_i) = \sigma^2$.
+  
+--
+
+- When all of these assumptions are met the OLS estimators for $\beta$:
+$$\hat\beta \dot\sim \mathrm{Normal}(\beta, \mathrm{Var}(\hat\beta))$$
+
+---
+### Variance of the OLS
+
+- From the previous lecture we know that the when all assumptions are met 
+including the constant variance, then the variance of our OLS estimators is:
+$$\mathrm{Var}(\hat\beta) = \sigma^2\left(X^TX\right)^{-1}$$
+
+--
+
+- This is a direct result of the constant variance assumption which can be 
+expressed as:
+$$\mathrm{Var}(\epsilon) = \sigma^2\boldsymbol{I}_{n \times n}$$
+
+--
+
+$$\mathrm{Var}(\epsilon) = \begin{pmatrix}
+\sigma^2 & 0        & \cdots & 0      \\
+0        & \sigma^2 & \cdots & 0      \\
+\vdots   & \vdots   & \ddots & \vdots \\
+0        & 0        & \cdots & \sigma^2
+\end{pmatrix}$$
+
+---
+### Consequences of non-constant variance
+
+- What happens when the constant variance assumption is not met?
+
+--
+
+- We can start by formalizing the problem, in this case it would mean that 
+$\mathrm{Var}(\epsilon) \neq \sigma^2\boldsymbol{I}$. Therefore, we need to 
+start by specifying the variance of the errors.
+
+--
+
+- Let's say for now that we still meet the assumption of independence, that is 
+$\epsilon_i \perp \epsilon_j$. When the errors are independent then we know that
+their covariance will be equal to $0$.
+
+--
+
+- That means that we can express the variance in matrix form as:
+$$\mathrm{Var}(\epsilon) = \begin{pmatrix}
+\sigma^2_1 & 0        & \cdots & 0      \\
+0        & \sigma^2_2 & \cdots & 0      \\
+\vdots   & \vdots   & \ddots & \vdots \\
+0        & 0        & \cdots & \sigma^2_n
+\end{pmatrix} = \Sigma_{n\times n}$$
+
+---
+### Consequences of non-constant variance
+
+- Here $\Sigma_{n\times n}$ represents the variance covariance matrix of our 
+errors.
+
+--
+
+- If the other assumptions are true, then that means that for a linear model of 
+the form $Y = X\beta + \epsilon$ we have that:
+
+--
+
+  1. $\mathrm{E}(Y) = \mathrm{E}(X\beta + \epsilon) = X\beta + \mathrm{E}(\epsilon) =  X\beta$
+
+--
+
+ 1. $\mathrm{Var}(Y) = \mathrm{Var}(X\beta + \epsilon) = \mathrm{Var}(\epsilon) =  \Sigma$
+ 
+--
+
+- In other words, even though we have lost the assumption of constant variance, 
+the mean of our observations should still be the linear function $X\beta$.
+
+---
+### Consequences of non-constant variance
+
+- Now, what happens with our OLS estimators $\hat\beta$, well they are still
+unbiased, which means that their expected value is still equal to the population
+level parameters $\beta$:
+
+--
+
+- $\mathrm{E}\left(\hat\beta\right) = \mathrm{E}\left(\left(X^TX\right)^{-1}X^TY\right) = \left(X^TX\right)^{-1}X^T\mathrm{E}\left(Y\right) = \left(X^TX\right)^{-1}X^TX\beta = \beta$
+
+--
+
+- However, the problem show's up when we look at the variance of our estimators:
+$$\mathrm{Var}\left(\hat\beta\right) = \mathrm{Var}\left(\left(X^TX\right)^{-1}X^TY\right)\\
+\mathrm{Var}\left(\hat\beta\right) = \left(X^TX\right)^{-1}X^T\mathrm{Var}\left(Y\right)X\left(X^TX\right)^{-1}\\
+\mathrm{Var}\left(\hat\beta\right) = \left(X^TX\right)^{-1}X^T\Sigma X\left(X^TX\right)^{-1}$$
+
+---
+### Consequences of non-constant variance
+
+- The problem here is that now the variance of our errors $\Sigma$ is there and
+we can't simplify the variance any further.
+
+--
+
+- In practice, this means that we can't use the Sum of Squared Errors 
+$\hat\sigma^2$ to estimate the variance of our estimators.
+
+--
+
+- This means that we can't get the standard error of our estimators with the 
+formula that we have used before.
+
+--
+
+- We now have to take extra steps to approximate the variance of our estimators
+if we want to do inferences with them.
+
+--
+
+- But, what would happen if we just ignore that this is true and instead keep 
+using the same standard error (which are the default in R)?
+
+--
+
+- Well let's look at the consequences using a simulation example.
+
+---
+### Simulation
+
+- Open the file `in-class-11.Rmd` and follow the instructions.
+
+--
+
+- First let's start by generating the mean of our observations using 5 different
+values of X.
+
+--
+
+- Generate the mean of a random variable $\mu$ using the linear function for
+5 different values of x that go from 1 to 5 each repeated 6 times. You can 
+choose any values for the parameters $\beta_0$ and $\beta_1$ 
+(question 1 `in-class-11.Rmd`).
+
+--
+
+```{r}
+# set values for the parameters beta_0 and beta_1
+beta <- c(1, 3)
+
+# generate a design matrix with for 30 observations in which the first column
+# has the value of 1 and the second column has the value of our predictor
+design <- cbind(rep(1, times = 5 * 6), 
+                rep(seq(from = 1, to = 5), each = 6))
+
+# generate a vector with the mean for each observation
+mu <- design %*% beta
+```
+
+---
+### Simulation
+
+- Notice that the mean we generated is the TRUE mean, and not the estimated one. 
+This is because in a simulation we know the true values of the parameters, and 
+therefore the true mean.
+
+--
+
+- Now that we have a mean vector we have to generate a vector of variances to
+simulate the non-constant variance problem.
+
+--
+
+- Generate a vector of variances named `variance_obs` using the following format
+$\mathrm{Var}(\epsilon_i\mid x) = 1.5 + \frac{x - 1}$ 
+(question 2 `in-class-11.Rmd`).
+
+--
+
+```{r}
+# generate a vector with as many variances as mean values generated in 1.
+variance_obs <- 1.5 + (design[, 2] - 1)
+```
+
+
+
+---
+### Simulation
+
+- Again, because this is a simulation we can set the values of x from the start 
+and then treat it as an unknown quantity once we have the data.
+
+--
+
+- Now that we have our vector of means $\mu = \boldsymbol{X}\beta$ and our 
+vector of variances $\sigma^2_1, \dots, \sigma^2_n$ we can generate data from a
+single experiment.
+
+--
+
+- Generate a vector of 30 observations $Y$ with the following properties:
+$$y_i \sim \mathrm{Normal}(\beta_0 + \beta_1x_{i1}, \sigma^2_i)$$ (*Note:* you 
+can do this using the function `rnorm` and the variables from questions 1 and 2).
+
+--
+
+```{r}
+# generate data from a single experiment with 30 observations with mean 
+# mu and variance sigma^2_i
+observations <- rnorm(n = dim(design)[1], mean = mu, sd = sqrt(variance_obs))
+```
+
+---
+### Simulation
+
+- Make a plot of the data you just generated and add the regression line 
+(question 4, `in-class-11.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+plot(x = jitter(x = design[, 2], amount = 0.2), 
+     y = observations, las = 1, ann = FALSE, pch = 21, col = "#FFFFFF", 
+     bg = "#f8971f", cex = 2, bty = "l")
+abline(a = beta[1], b = beta[2], col = "#005f86", lwd = 3, lty = 2)
+mtext(text = "Predictor", side = 1, line = 2.4, cex = 1.6)
+mtext(text = "Observation", side = 2, line = 3, cex = 1.3)
+```
+
+---
+### Simulation
+
+- Fit a linear model to your observations and compare the estimated values 
+$\hat\beta_0$ and $\hat\beta_1$ with the real values used in your simulation
+(question 5, `in-class-11.Rmd`).
+
+--
+
+```{r}
+# fitting a linear model using the predictor in our design matrix
+lm_sim <- lm(formula = observations ~ design[, 2])
+```
+
+--
+
+- The estimated value of $\hat\beta_0$ was
+`r round(x = lm_sim$coef[1], digits = 2)` which is approximately 
+`r round(x = abs(beta[1] - lm_sim$coef[1]), digits = 3)` away from the true 
+value.
+
+--
+
+- The estimated value of $\hat\beta_1$ was
+`r round(x = lm_sim$coef[2], digits = 2)` which is approximately 
+`r round(x = abs(beta[2] - lm_sim$coef[2]), digits = 3)` away from the true 
+value.
+
+---
+### Simulation
+
+- Plot the residuals of the model as a function of the predictor and describe 
+the plot, including any trends that you can see (question 6, `in-class-11.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+plot(x = jitter(x = design[, 2], amount = 0.2),
+     y = lm_sim$residuals, las = 1, ann = FALSE,
+     pch = 21, col = "#FFFFFF", bg = "#f8971f",
+     cex = 2, bty = "l")
+abline(h = 0, col = "#005f86", lwd = 3, lty = 2)
+mtext(text = "Predictor", side = 1, line = 2.4, cex = 1.6)
+mtext(text = "Residuals", side = 2, line = 3, cex = 1.3)
+```
+
+---
+### Simulation
+
+- Now let's simulate 10,000 experiments, in this section we will write the 
+simulation together so that I can show you what to save and how to make the 
+simulation run faster (question 7, `in-class-11.Rmd`).
+
+```{r, echo=FALSE}
+inv_design <- solve(t(design) %*% design)
+
+n_simulations <- 10000
+sample_size <- dim(design)[1]
+n_parameters <- dim(design)[2]
+
+hat_beta_0 <- c()
+hat_beta_1 <- c()
+hat_sigma <- c()
+
+for (i in 1:n_simulations) {
+  y <- rnorm(n = dim(design)[1], mean = mu, sd = sqrt(variance_obs))
+  hat_beta <- inv_design %*% t(design) %*% y
+  hat_sigma <- append(
+    x = hat_sigma, 
+    values = sum((y - design %*% hat_beta)^2) / (sample_size - n_parameters))
+  hat_beta_0 <- append(x = hat_beta_0, values = hat_beta[1])
+  hat_beta_1 <- append(x = hat_beta_1, values = hat_beta[2])
+}
+```
+
+---
+### Simulation
+
+- Make a histogram of the estimated values of $\hat\beta_0$, use the argument
+`freq = FALSE` to have the y axis be a density and not a count 
+(question 8, `in-class-11.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+hist(x = hat_beta_0, freq = FALSE, breaks = 100, las = 1, ann = FALSE,
+     border = "#ffffff", col = "#f8971f")
+mtext(text = expression(beta[0]), side = 1, line = 2.4, cex = 1.6)
+abline(v = beta[1], lwd = 3, lty = 2, col = "#005f86")
+```
+
+---
+### Simulation
+
+- Make a histogram of the estimated values of $\hat\beta_1$, use the argument
+`freq = FALSE` to have the y axis be a density and not a count 
+(question 9, `in-class-11.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+hist(x = hat_beta_1, freq = FALSE, breaks = 100, las = 1, ann = FALSE,
+     border = "#ffffff", col = "#f8971f")
+mtext(text = expression(beta[1]), side = 1, line = 2.4, cex = 1.6)
+abline(v = beta[2], lwd = 3, lty = 2, col = "#005f86")
+```
+
+---
+### Non-constant Variance
+
+- Up to this point everything still looks good, the distributions of the 
+simulated OLS estimators even have a normal distribution.
+
+--
+
+- Now let's calculate the confidence interval for each of the simulations.
+
+--
+
+- Calculate the $95\%$ confidence interval for each $\hat\beta_0$ obtained
+in the simulation, the result should be a matrix with 10,000 rows (one for 
+each simulation) and two columns, one for the lower and upper bound 
+respectively (question 10, `in-class-11.Rmd`).
+
+--
+
+```{r}
+alpha <- 0.05
+beta_0_ci <- cbind(
+  hat_beta_0 - qt(p = 1 - alpha / 2, df = sample_size - n_parameters) * 
+    sqrt(hat_sigma * inv_design[1, 1]),
+  hat_beta_0 + qt(p = 1 - alpha / 2, df = sample_size - n_parameters) * 
+    sqrt(hat_sigma * inv_design[1, 1]))
+```
+
+---
+### Non-constant Variance
+
+- Now that we have the $95\%$ confidence interval for $\beta_0$ we can look at
+how many of those intervals contain the true value of the parameter.
+
+--
+
+- Calculate the proportion of times that the true value of the parameter 
+$\beta_0$ is contained between the lower and upper bound you calculated. Is this
+proportion greater, lower or equal to the theoretical coverage probability 
+$(0.95)$. (question 11, `in-class-11.Rmd`).
+
+--
+
+- We can estimate the observed coverage probability by taking the mean of a
+logical operation. Remember that `TRUE` is treated as 1 in R.
+
+```{r}
+coverage_b0 <- mean(x = beta_0_ci[, 1] <= beta[1] & beta[1] <= beta_0_ci[, 2])
+```
+
+- The proportion of intervals that contained the true value of the parameter 
+$\beta_0$ was `r round(x = coverage_b0, digits = 3)`, this is higher than the 
+theoretical coverage probability we derived from the theory.
+
+---
+### Non-constant Variance
+
+- Calculate the $95\%$ confidence interval for each $\hat\beta_1$ obtained
+in the simulation, the result should be a matrix with 10,000 rows (one for 
+each simulation) and two columns, one for the lower and upper bound 
+respectively. Like we did with $\beta_0$ estimate the proportion of times that 
+the true value of the parameter $\beta_1$ is contained between the two bounds. 
+Is the proportion greater, lower or equal to the theoretical coverage 
+probability $(0.95)$ (question 12, `in-class-11.Rmd`).
+
+--
+
+```{r}
+alpha <- 0.05
+beta_1_ci <- cbind(
+  hat_beta_1 - qt(p = 1 - alpha / 2, df = sample_size - n_parameters) * 
+    sqrt(hat_sigma * inv_design[2, 2]),
+  hat_beta_1 + qt(p = 1 - alpha / 2, df = sample_size - n_parameters) * 
+    sqrt(hat_sigma * inv_design[2, 2]))
+
+coverage_b1 <- mean(x = beta_1_ci[, 1] <= beta[2] & beta[2] <= beta_1_ci[, 2])
+```
+
+---
+### Non-constant Variance
+
+- The proportion of times that the interval for $\beta_1$ contained the true 
+value of the parameter was `r round(x = coverage_b1, digits = 3)`, which is 
+close to the theoretical coverage probability we derived from the theory.
+
+--
+
+- In this case we have an example where the coverage probability for the 
+parameter $\beta_0$ is the one that suffers the most. However, this does not
+mean that the unequal variance problem will only affect the inference for 
+the intercept. It can affect all the parameters in a model.
+
+--
+
+- The key issued here is that the variance as we have derive it (assuming that
+observations have a constant variance), is overestimating the variability of the 
+intercept which results in an increased confidence interval and therefore a 
+higher coverage probability than expected.
+
+---
+### Solutions to the Heteroskedasticity Problem
+
+- Some solutions have been introduced to deal with the problem of unequal 
+variances. One such solution is the use of `Robust Variance Estimators`.
+
+--
+
+- A robust variance estimator is a function that attempts to correct the bias in
+our estimation of the variance of the OLS estimators.
+
+--
+
+- There are multiple estimators (functions) in these family of estimators, 
+however, one that is often used is the 
+`Heteroskedasticity Corrected Variance Estimator`.
+
+--
+
+- The key intuition of this approach is to use the squared value of the 
+residual for each observation (the difference between the observation and the 
+mean) as an estimate of $\sigma^2_i$ and then correct this value by taking 
+into account how much influence a particular observation has on the predictions
+of the model.
+
+---
+### Measuring the impact of each observation on predicted values
+
+- In a linear model we can measure the effect that each observation has on the 
+predicted mean $\hat\mu$. 
+
+--
+
+- This is measured by a matrix known as the `Hat matrix` which is defined as:
+$$H = \boldsymbol{X}\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T$$
+
+--
+
+- The reason why is called the hat matrix is because when we multiply this
+matrix by the observations $\boldsymbol{Y}$ the result is the `predicted` mean 
+of each observation. Which we typically denote as $\hat{\mu}$.
+
+---
+### Measuring the impact of each observation on predicted values
+
+- It turns out that the elements in the main diagonal of the hat matrix $H$ are 
+an indicator of how much influence each observation has on the expected value of 
+y.
+
+--
+
+- These diagonal elements can only take values between $0$ and $1$, and the 
+closer they are to $1$ the more influential they are.
+
+--
+
+- Create a new vector named `h` that includes the diagonal elements of the 
+hat matrix for your simulations. **Notice** that the hat matrix does not change 
+across simulations of the experiment (question 13, `in-class-11.Rmd`).
+
+--
+
+```{r}
+h <- diag(x = design %*% inv_design %*% t(design))
+```
+
+---
+### Heteroskedasticity Corrected Variance Estimator
+
+- Now that we have our measure of the influence of each observation on the 
+regression line we will use it to estimate a new variance matrix.
+
+--
+
+- Remember that we said that we could write the variance of the observations, 
+or the variance of the errors as:
+
+$$\mathrm{Var}(\epsilon) = \begin{pmatrix}
+\sigma^2_1 & 0        & \cdots & 0      \\
+0        & \sigma^2_2 & \cdots & 0      \\
+\vdots   & \vdots   & \ddots & \vdots \\
+0        & 0        & \cdots & \sigma^2_n
+\end{pmatrix}$$
+
+--
+
+- We are going to estimate each $\sigma_i^2$ using:
+$$\hat\sigma_i^2 = (y_i - \hat\mu_i)^2$$
+
+---
+### Heteroskedasticity Corrected Variance Estimator
+
+- Now that we have both elements we will generate the estimated variance for 
+the observations using:
+
+$$\widehat{\mathrm{Var}(\epsilon)} = \begin{pmatrix}
+\frac{\hat{\sigma^2_1}}{(1-h_{11})^2} & 0        & \cdots & 0      \\
+0        & \frac{\hat{\sigma^2_2}}{(1-h_{22})^2} & \cdots & 0      \\
+\vdots   & \vdots   & \ddots & \vdots \\
+0        & 0        & \cdots & \frac{\hat{\sigma^2_n}}{(1-h_{nn})^2}
+\end{pmatrix}$$
+
+--
+
+- Where $h_{ii}$ represents the $i-th$ element in the main diagonal of H.
+
+---
+### Heteroskedasticity Corrected Variance Estimator
+
+- Let's see what happens to a confidence interval when we use the new 
+variance estimator $\widehat{\mathrm{Var}(\epsilon)}$. Calculate the matrix 
+$\widehat{\mathrm{Var}(\epsilon)}$ and save it with the name `hat_residuals` 
+(`hint:` if you use the function `diag` and use a vector instead of a matrix as 
+the argument the result with be a diagonal matrix that includes the elements of 
+the vector in the main diagonal; question 14, `in-class-11.Rmd`).
+
+--
+
+- For our original simulation of the data we can get the new variance matrix 
+with:
+
+```{r}
+hat_residuals <- diag(x = as.vector((observations - mu)^2 * (1 / (1 - h)^2)))
+```
+
+---
+### Heteroskedasticity Corrected Variance Estimator
+
+- Our new matrix $\widehat{\mathrm{Var}(\epsilon)} = \hat\Sigma$ is known as the Type 3
+Heteroskedasticity Corrected Variance Estimator, or HC3 for short.
+
+--
+
+- Now we can calculate a corrected version of the variance of our OLS 
+estimators: 
+$$\widehat{\mathrm{Var}(\hat\beta)} = (\boldsymbol{X}^T\boldsymbol{X})^{-1}\boldsymbol{X}^T\hat\Sigma\boldsymbol{X}(\boldsymbol{X}^T\boldsymbol{X})^{-1}$$
+
+--
+
+- Calculate the corrected variance of the OLS estimators 
+(question 15, `in-class-11.Rmd`).
+
+--
+
+```{r}
+corrected_var_beta <- 
+  inv_design %*% t(design) %*% 
+  hat_residuals %*%
+  design %*% inv_design
+```
+
+---
+### Heteroskedasticity Corrected Variance Estimator
+
+- We can use the new estimated variance of our parameters to estimate confidence 
+intervals and p-values.
+
+--
+
+- Estimate the $95\%$ confidence interval for the parameters $\beta_0$ and 
+$\beta_1$ using the variance matrix that you found in 15 and compare them with 
+the ones found using the output of the `summary` function of an `lm` model.
+
+--
+
+```{r}
+alpha <- 0.05
+summary_sim <- summary(lm_sim)
+
+ci_beta0 <- lm_sim$coef[1] + c(-1, 1) *
+  qt(p = 1 - alpha / 2, df = sample_size - n_parameters) *
+  sqrt(corrected_var_beta[1,1])
+
+ci_beta0_lm <- lm_sim$coef[1] + c(-1, 1) *
+  qt(p = 1 - alpha / 2, df = sample_size - n_parameters) *
+  summary_sim$coefficients['(Intercept)', 'Std. Error']
+```
+
+---
+### Heteroskedasticity Corrected Variance Estimator
+
+- For $\beta_1$ we do:
+
+```{r}
+ci_beta1 <- lm_sim$coef[2] + c(-1, 1) *
+  qt(p = 1 - alpha / 2, df = sample_size - n_parameters) *
+  sqrt(corrected_var_beta[2,2])
+
+ci_beta1_lm <- lm_sim$coef[2] + c(-1, 1) *
+  qt(p = 1 - alpha / 2, df = sample_size - n_parameters) *
+  summary_sim$coefficients['design[, 2]', 'Std. Error']
+```
+
+--
+
+- To compare the values we can make a two plots, each containing a single 
+parameter.
+
+```{r, echo=FALSE}
+layout(t(c(1,2)))
+plot(x = rep(x = 0.25, times = 2), y = ci_beta0, lwd = 4, 
+     col = "dodgerblue", ylim = c(-1, 6), type = "l", las = 1, 
+     ann = FALSE, axes = FALSE, xlim = c(0,1))
+lines(x =  rep(x = 0.75, times = 2), y = ci_beta0_lm, lwd = 4, 
+      col = "tomato")
+box(bty = "l")
+axis(2, las = 2)
+mtext(text = expression(beta[0]), side = 1, line = 2.4, cex = 1.6)
+legend("topright", bty = "n", legend = c("Corrected", "Constant"),
+      col = c("dodgerblue", "tomato"), lwd = 2)
+
+plot(x = rep(x = 0.25, times = 2), y = ci_beta1, lwd = 4, 
+     col = "dodgerblue", ylim = c(-1, 6), type = "l", las = 1, 
+     ann = FALSE, axes = FALSE, xlim = c(0,1))
+lines(x =  rep(x = 0.75, times = 2), y = ci_beta1_lm, lwd = 4, 
+      col = "tomato")
+box(bty = "l")
+axis(2, las = 2)
+mtext(text = expression(beta[1]), side = 1, line = 2.4, cex = 1.6)
+legend("topright", bty = "n", legend = c("Corrected", "Constant"),
+      col = c("dodgerblue", "tomato"), lwd = 2)
+```
+

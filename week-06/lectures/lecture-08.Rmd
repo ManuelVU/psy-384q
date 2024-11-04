@@ -1,0 +1,798 @@
+---
+title: "Transformation of Covariates"
+subtitle: "Lecture 8"
+author: 
+  - "Manuel Villarreal"
+date: '09/30/24'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: ['xaringan-themer.css', 'set-colors.css']
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: false
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.retina = 3,
+  fig.width = 7,
+  fig.height = 5.8,
+  fig.align = 'center',
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, echo=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#005f86",
+  secondary_color = "#f8971f",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+```{r xaringan-extra, echo=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_panelset()
+htmltools::tagList(
+  xaringanExtra::use_clipboard(
+    button_text = "<i class=\"fa fa-clipboard\"></i>",
+    success_text = "<i class=\"fa fa-check\" style=\"color: #90BE6D\"></i>",
+    error_text = "<i class=\"fa fa-times-circle\" style=\"color: #F94144\"></i>"
+  ))
+rmarkdown::html_dependency_font_awesome()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         
+  mute_unhighlighted_code = TRUE)
+
+cities <- readr::read_csv(file = here::here("week-05/data/cities.csv")) |> 
+  subset(subset = city == "miami")
+```
+
+### Linear Splines
+
+- In the previous lecture we mention that when we use a linear spline we are 
+basically joining two or more independent lines at some point.
+
+--
+
+- Let's call that point a joint and denote it by the variable $c_k$ where k 
+represents the joint number.
+
+--
+
+- Formally, for every joint $c_k$ in the spline (point where two lines join), we 
+want to make sure that the following is true:
+$$\lim_{X_i\to c_k^{-}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \lim_{X_i\to c_k^{+}} \mathrm{E}\left(Y_i \mid f(X_i)\right)$$
+
+--
+
+- This means that we want the expected value of our dependent variable $Y$ 
+to be the same if we approach the joint $c_k$ from the negative side of 
+$X_i$ that if we approach it from the positive side.
+
+---
+### Linear Splines
+
+- In other words, we want our expectations to transition smoothly from one line
+to the other without any abrupt jumps.
+
+--
+
+- Let's check our example from the precious class and see if this condition is
+met.
+
+--
+
+- Formally, our model states that:
+$$\mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 + \beta_1\left(I(X_i > 40)(X_i - 40)\right)$$
+
+--
+
+- Where $I(X_i > 40)$ is an indicator function that takes the value 0 if 
+$X_i\leq 40$ and the value $1$ otherwise.
+
+--
+
+- Notice that in this case $f(X_i) = I(X_i > 40)(X_i - 40)$.
+
+---
+### Linear Splines: continuity
+
+- Now we can check what the limit of our function is. 
+
+--
+
+- Let's start from the side of the negative numbers. Given that the joint is at 
+$c_1 = 40$ we have that:
+$$\lim_{X_i\to c_k^{-}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \lim_{X_i\to c_k^{-}}\left( \beta_0 + \beta_1\left(I(X_i > 40)(X_i - 40)\right) \right)\\ 
+\lim_{X_i\to 40^{-}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 + \beta_1\left(\lim_{X_i\to 40^{-}}I(X_i > 40)(X_i - 40)\right)$$
+
+---
+### Linear Splines: continuity
+
+- According to the definition of a limit, we can approach arbitrarily close to 
+the value $c_k$ (in this case $40$) from the left, however, we will never reach 
+that value. In other words we have that:
+$$\lim_{X_i\to 40^{-}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 + \beta_1\left(0\cdot\lim_{X_i\to 40^{-}}(X_i - 40)\right)$$
+
+--
+
+- The limit of our function $\lim_{X_i\to 40^{-}}(X_i - 40)$ is being 
+multiplied by $0$. Therefore we know that regardless of the value of $X_i$, 
+the equation can be simplified as:
+$$\lim_{X_i\to 40^{-}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0$$
+
+--
+
+- This means that for people who are $40$ years old or younger we expect their 
+memory performance to be $\beta_0$.
+
+---
+### Linear Splines: continuity
+
+- Now let's look at the limit from the positive side:
+$$\lim_{X_i\to c_k^{+}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \lim_{X_i\to c_k^{+}}\left( \beta_0 + \beta_1\left(I(X_i > 40)(X_i - 40)\right) \right)\\ 
+\lim_{X_i\to 40^{+}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 + \beta_1\left(\lim_{X_i\to 40^{+}}I(X_i > 40)(X_i - 40)\right)$$
+
+--
+
+- Now we are approaching the joint $c_k$ (which is still $40$) from the 
+positive side of the real line, which means that we can get arbitrarily close 
+to 40 without reaching that value. Therefore, we know that $I(X_i > 40) = 1$.
+$$\lim_{X_i\to 40^{+}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 + \beta_1\left(\lim_{X_i\to 40^{+}}1\cdot (X_i - 40)\right)$$
+
+---
+### Linear Splines: continuity
+
+- This time there is no zero to multiply the limit, however, we can think about
+what will happen as we approach arbitrarily close to $40$ from the positive 
+side.
+
+--
+
+- We want to figure out: What happens to the $\lim_{X_i\to 40^{+}}(X_i - 40)$ 
+as we move closer and closer to 40? Well, it gets closer and closer to 0!
+
+--
+
+- In other words, as we move arbitrarily close to 40 the limit will move
+arbitrarily close to 0, which means that 
+$$\lim_{X_i\to 40^{+}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 + \beta_1\left(1\cdot 0\right) = \beta_0$$
+--
+
+- And with this we have shown that both expectations are equal!
+$$\lim_{f(X_i)\to c_k^{-}} \mathrm{E}\left(Y_i \mid f(X_i)\right) = \beta_0 = \lim_{f(X_i)\to c_k^{+}} \mathrm{E}\left(Y_i \mid f(X_i)\right)$$
+
+---
+### More than two lines
+
+- What does this mean in practice? Well, it means that we have to make sure that 
+two consecutive lines have the same value at their joint.
+
+--
+
+- Now that we know that we have to make sure that two lines have the same value
+at their joint, we can think of adding more lines to a model.
+
+--
+
+- Let's go back to our average temperature example and model the data from 
+the city of Miami using linear splines.
+
+---
+### Spline: Average temperature
+
+- Open the file `in-class-09.Rmd` load the `cities.csv` data and use the subset 
+function to keep only the data for the city of Miami.
+
+--
+
+- We can use the piping operator as well as the subset function to keep 
+the data only for the city of Miami
+
+```{r}
+cities <- cities |> 
+  subset(subset = city == "miami")
+```
+
+---
+### Spline: Average temperature
+
+- Now we can make a box plot of the temperature in Miami by month.
+
+--
+
+```{r, echo=FALSE, out.width="40%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(60, 90))
+
+qq_m <- cities |> 
+  dplyr::group_by(month) |> 
+  dplyr::summarise("q1" = quantile(x = avgtemp, probs = 0.25),
+                   "q2" = quantile(x = avgtemp, probs = 0.5),
+                   "q3" = quantile(x = avgtemp, probs = 0.75),
+                   "max" = max(avgtemp),
+                   "min" = min(avgtemp))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#ff6347aa", 
+     border = "tomato")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+```
+
+---
+### Spline: Average temperature
+
+- Let's start with a linear model that includes 2 nodes and 3 lines.
+
+--
+
+- We can set a node on the third month and a second node on the 8th month.
+
+--
+
+- What does this mean? It means that temperature should have a 
+consistent rate of change $(\beta)$ between the months of January to March. 
+
+--
+
+- A different but also consistent rate of change in the months between March 
+and August.
+
+--
+
+- And finally, a different rate of change between the months of August and 
+December.
+
+--
+
+- How can we do this and still maintain the continuity assumption in our model?
+
+--
+
+- Well we have to use a combination of indicator and difference functions!
+
+---
+### Spline: Average temperature
+
+- For example, we know that the average temperature should have an intercept 
+different than $0$ to start.
+
+--
+
+- Then it might be the case that the temperature increases slightly between the 
+months of January to March.
+
+--
+
+- We can achieve this by combining an indicator function that assigns a value
+of 1 to months between January and March and then a 0 to any other month.
+
+--
+
+- Mathematically we can express this function as:
+$$\mathrm{E}\left(Y_i \mid f_1(\text{month}_i)\right) = \beta_0 + \beta_1 \text{month}_i + \beta_2I(1 \leq \text{month}_i \leq 3) (\text{month}_i)$$
+
+--
+
+- This first part of the equation makes sure that the line that connects 
+the months of January and March has a single slope and intercept.
+
+---
+### Spline: Average temperature
+
+- Add a variable to your data set that assigns the value of 
+$\text{month}_i$ to every observation made in the months of January to 
+March and 0 otherwise (question 3 `in-class-09.Rmd`).
+
+---
+### Spline: Average temperature
+
+```{r, echo=TRUE}
+cities <- cities |> 
+  dplyr::mutate("id_jan_mar" = ifelse(test = month <= 3, yes = month, no = 0))
+```
+
+```{r, echo=FALSE}
+DT::datatable(
+  data = cities,
+  options = list(pageLength = 4), 
+  rownames = FALSE,
+  class = 'cell-border stripe')
+```
+
+---
+### Spline: Average temperature
+
+- With this new function we have that:
+$$\mathrm{E}\left(Y_i \mid f_1(\text{month}_i = 1)\right) = \beta_0 + \beta_1 + \beta_2\\
+\mathrm{E}\left(Y_i \mid f_1(\text{month}_i = 2)\right) = \beta_0 + 2\beta_1+ 2\beta_2\\
+\mathrm{E}\left(Y_i \mid f_1(\text{month}_i = 3)\right) = \beta_0 + + 3\beta_2 + 3\beta_1$$
+
+--
+
+- In this case the parameter $\beta_1$ represents the rate of change in average
+temperature in the city of Miami as a function of the month.
+
+--
+
+- The parameters $\beta_1 + \beta_2$ represent the rate of change in temperature
+for a month change between the months of January to March. The interpretation of 
+$\beta_0$ depends on how we handle the rest of the lines in the model!
+
+---
+### Spline: Average temperature
+
+- Now we have to decide which month will represent the next joint.
+
+--
+
+- From the data it looks like the trend in average temperature increases at the
+same rate in the months between March to August.
+
+--
+
+- That means that we can have a new line that starts at March and goes all the 
+way to August.
+
+--
+
+- However, remember that we have to satisfy the continuity assumption, which 
+means that we want to find a function that makes the following equation true
+$$\lim_{\text{month}_i\to \text{3}^{-}} \mathrm{E}\left(Y_i \mid f_1(\text{month}_i), f_2(\text{month}_i)\right) =\\
+\lim_{\text{month}_i\to \text{3}^{+}} \mathrm{E}\left(Y_i \mid f_1(\text{month}_i), f_2(\text{month}_i)\right)$$
+
+---
+### Spline: Average temperature
+
+- Once again let's use an indicator function and a difference function to 
+generate our new variable $f_2(\text{month}_i)$
+$$f_2(\text{month}_i) = I(3 < \text{month}_i \leq 8)(\text{month}_i - 3)$$
+
+--
+
+- This function will satisfy the continuity assumption.
+
+--
+
+- Add this function as a new variable to your data set with the name 
+"id_mar_aug" (question 4 `in-class-09.Rmd`).
+
+--
+
+- Like before, we can use the `mutate()` function alongside an `ifelse()` 
+function to generate our new variable:
+```{r}
+cities <- cities |> 
+  dplyr::mutate("id_mar_aug" = ifelse(test = month > 3 & month <= 8,
+                                      yes = month - 3, no = 0))
+```
+
+---
+### Spline: Average temperature
+
+- Finally, we need a third that will allow us to set a different slope 
+$(\beta)$ to the months of September to December.
+
+--
+
+- Once again we can use an indicator and difference functions in order to make 
+sure that we meet the continuity assumption.
+
+--
+
+- Add a new variable to your data set named "id_aug_dec" that combines an 
+indicator function and a difference function to assign values to the months of
+September, October, November, and December, that will meet the continuity
+assumption (question 5 `in-class-09.Rmd`).
+
+--
+
+- Like we did before we will use the mutate and ifelse functions:
+```{r}
+cities <- cities |> 
+  dplyr::mutate("id_aug_dec" = ifelse(test = month > 8 & month <= 12,
+                                      yes = month - 8, no = 0))
+```
+
+---
+### Spline: Average temperature
+
+- Now we can fit the following model to the data (question 6 `in-class-09.Rmd`):
+$$Y_i = \beta_0 + \beta_1\text{month}_i + \beta_2f_1(\text{month}_i) + \beta_3f_2(\text{month}_i) + \beta_4f_3(\text{month}_i) + \epsilon_i$$
+
+--
+
+- Remember that the three functions we have are the same as our new variables
+we created, so we can fit this model with
+```{r}
+lm_spline_miami <- lm(
+  formula = avgtemp ~ month + id_jan_mar + id_mar_aug + id_aug_dec, 
+  data = cities)
+```
+
+---
+### Plot: expected average temperature
+
+- Make a plot of the average temperature of Miami by month and add the 
+estimated expected average temperature from our new model 
+(question 7 `in-class-09.Rmd`).
+
+--
+
+```{r, echo=FALSE, out.width="40%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(60, 90))
+
+qq_m <- cities |> 
+  dplyr::group_by(month) |> 
+  dplyr::summarise("q1" = quantile(x = avgtemp, probs = 0.25),
+                   "q2" = quantile(x = avgtemp, probs = 0.5),
+                   "q3" = quantile(x = avgtemp, probs = 0.75),
+                   "max" = max(avgtemp),
+                   "min" = min(avgtemp))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#ff6347aa", 
+     border = "tomato")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "tomato", 
+         lwd = 2)
+
+segments(x0 = 1, x1 = 3, 
+         y0 = lm_spline_miami$coef[1], 
+         y1 = lm_spline_miami$coef[1] +
+           lm_spline_miami$coef[2] * 3 +
+           lm_spline_miami$coef[3] * 3,
+         lwd = 4, lty = 2, col = "darkred")
+
+segments(x0 = 3, x1 = 8, 
+         y0 = lm_spline_miami$coef[1] +
+           lm_spline_miami$coef[2] * 3 +
+           lm_spline_miami$coef[3] * 3, 
+         y1 = lm_spline_miami$coef[1] +
+           lm_spline_miami$coef[2] * 8 +
+           lm_spline_miami$coef[4] * 5,
+         lwd = 4, lty = 2, col = "darkred")
+
+segments(x0 = 8, x1 = 12, 
+         y0 = lm_spline_miami$coef[1] +
+           lm_spline_miami$coef[2] * 8 +
+           lm_spline_miami$coef[4] * 5, 
+         y1 = lm_spline_miami$coef[1] + 
+           lm_spline_miami$coef[2] * 12 +
+           lm_spline_miami$coef[5] * 4, 
+         lwd = 4, lty = 2, col = "darkred")
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+```
+
+---
+### Parameter interpretation
+
+- $\beta_0$ is the estimated average temperature for the city of Miami at month 
+0, like in other models we have used, the intercept is not easy to interpret.
+
+--
+
+- $\beta_1$ is the estimated change in the average temperature for the city of 
+Miami for a month difference.
+
+--
+
+- $\beta_1 + \beta_2$ is the estimated change in the average temperature for 
+the city of Miami for a month difference between the months of January to March.
+
+--
+
+- $\beta_1 + \beta_3$ is the estimated change in the average temperature for the
+city of Miami for a month difference between the months of March to August to December.
+
+- $\beta_1 + \beta_4$ is the estimated change in the average temperature for the
+city of Miami for a month difference between the months of August to December.
+
+---
+### Residuals
+
+- Like we have done before, we can look at the residuals of the model to check
+if there is a bias in the estimated average temperature.
+
+--
+
+- Plot the residuals of the model that assumes that the average monthly 
+temperature in the city of Miami has a different rate of change between the 
+months of January to March, March to August, and August to December 
+(question 8 `in-class-09.Rmd`).
+
+--
+
+```{r, echo=FALSE, out.width="33%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 4, 0.5, 0.5))
+
+plot(x = jitter(x = cities$month, amount = 0.3),
+     y = lm_spline_miami$residuals, 
+     ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "slategray", cex = 2, cex.axis = 1.5)
+abline(h = 0, lwd = 4, lty = 2)
+mtext(text = "Month", side = 1, line = 2.5, cex = 2)
+mtext(text = "Reiduals", side = 2, line = 3, cex = 2)
+```
+
+---
+### The city of San Francisco
+
+- Notice that when we start looking at the data from the city of Miami we made
+some assumptions about the position of the joints $c_1$ and $c_2$, however, 
+how good would these assumptions be for a different city?
+
+--
+
+- Load the data for the city of San Francisco in a separate object and add to it
+the same 3 variables that we added to the data from Miami 
+(question 9 `in-class-09.Rmd`).
+
+--
+
+```{r}
+cities <- readr::read_csv(file = here::here("week-05/data/cities.csv")) |> 
+  subset(subset = city == "san_francisco") |> 
+  dplyr::mutate("id_jan_mar" = ifelse(test = month <= 3,
+                                      yes = month, no = 0),
+                "id_mar_aug" = ifelse(test = month > 3 & month <= 8,
+                                      yes = month - 3, no = 0),
+                "id_aug_dec" = ifelse(test = month > 8 & month <= 12,
+                                      yes = month - 8, no = 0))
+```
+
+---
+### The city of San Francisco
+
+- Fit a linear model using these 3 new variables to the average temperature 
+of the city of San Francisco (question 10 `in-class-09.Rmd`).
+
+--
+
+```{r}
+lm_spline_sfn <- lm(
+  formula = avgtemp ~ month + id_jan_mar + id_mar_aug + id_aug_dec,
+  data = cities)
+```
+
+---
+### The city of San Francisco
+
+- Make a plot of the estimated average temperature in the city of San Francisco
+as a function of the month according to the linear mode we just fit to the data
+(question 11 `in-class-09.Rmd`).
+
+--
+
+```{r, echo=FALSE, out.width="40%"}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3, 3, 0.5, 0.5))
+
+plot(0,0,ann = FALSE, type = "n", las = 1, bty = "l",
+     xlim = c(1, 12), ylim = c(40, 85))
+
+qq_m <- cities |> 
+  dplyr::group_by(month) |> 
+  dplyr::summarise("q1" = quantile(x = avgtemp, probs = 0.25),
+                   "q2" = quantile(x = avgtemp, probs = 0.5),
+                   "q3" = quantile(x = avgtemp, probs = 0.75),
+                   "max" = max(avgtemp),
+                   "min" = min(avgtemp))
+
+rect(xleft = seq(from = 0.7, to = 11.7, by = 1), 
+     xright = seq(from = 1.3, 12.3, by = 1),
+     ybottom = qq_m$q1, ytop = qq_m$q3, col = "#005f86aa", 
+     border = "#005f86")
+
+segments(x0 = seq(from = 0.7, to = 11.7, by = 1),
+         x1 = seq(from = 1.3, 12.3, by = 1),
+         y0 = qq_m$q2,
+         y1 = qq_m$q2, 
+         col = "#005f86", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, 12, by = 1),
+         y0 = qq_m$q3,
+         y1 = ifelse(test = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1) > qq_m$max, 
+                     yes = qq_m$max,
+                     no = qq_m$q3 + (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "#005f86", 
+         lwd = 2)
+
+segments(x0 = seq(from = 1, to = 12, by = 1),
+         x1 = seq(from = 1, to = 12, by = 1),
+         y0 = qq_m$q1,
+         y1 = ifelse(test = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1) < qq_m$min, 
+                     yes = qq_m$min,
+                     no = qq_m$q1 - (1.5 * qq_m$q3 - qq_m$q1)),
+         col = "#005f86", 
+         lwd = 2)
+
+segments(x0 = 0, x1 = 3, 
+         y0 = lm_spline_sfn$coef[1], 
+         y1 = lm_spline_sfn$coef[1] +
+           lm_spline_sfn$coef[2] * 3 +
+           lm_spline_sfn$coef[3] * 3,
+         lwd = 4, lty = 2, col = "darkblue")
+
+segments(x0 = 3, x1 = 8, 
+         y0 = lm_spline_sfn$coef[1] +
+           lm_spline_sfn$coef[2] * 3 +
+           lm_spline_sfn$coef[3] * 3, 
+         y1 = lm_spline_sfn$coef[1] +
+           lm_spline_sfn$coef[2] * 8 +
+           lm_spline_sfn$coef[4] * 5,
+         lwd = 4, lty = 2, col = "darkblue")
+
+segments(x0 = 8, x1 = 12, 
+         y0 = lm_spline_sfn$coef[1] +
+           lm_spline_sfn$coef[2] * 8 +
+           lm_spline_sfn$coef[4] * 5, 
+         y1 = lm_spline_sfn$coef[1] + 
+           lm_spline_sfn$coef[2] * 12 +
+           lm_spline_sfn$coef[5] * 4, 
+         lwd = 4, lty = 2, col = "darkblue")
+
+points(x = c(3,8), 
+       y = c(lm_spline_sfn$coef[1] +
+           lm_spline_sfn$coef[2] * 3 +
+           lm_spline_sfn$coef[3] * 3,
+           lm_spline_sfn$coef[1] +
+           lm_spline_sfn$coef[2] * 8 +
+           lm_spline_sfn$coef[4] * 5), cex = 2, pch = 21, 
+       bg = "#5D3FD3", col = "white")
+
+mtext(text = "Month", side = 1, line = 2.3, cex = 1.5)
+mtext(text = "Average temperature", side = 2, line = 2.3, cex = 1.5)
+```
+
+---
+### Residuals
+
+- Now that we have applied the same model to both cities we can look at the 
+residuals for the city of San Francisco (question 12 `in-class-09.Rmd`).
+
+--
+
+```{r, echo=FALSE}
+par(mai = c(0.1, 0.1, 0.1, 0.1), 
+    oma = c(3.5, 4, 0.5, 0.5))
+
+plot(x = jitter(x = cities$month, amount = 0.3),
+     y = lm_spline_sfn$residuals, 
+     ann = FALSE, las = 1, bty = "l",
+     pch = 21, bg = "slategray", cex = 2, cex.axis = 1.5)
+abline(h = 0, lwd = 4, lty = 2)
+mtext(text = "Month", side = 1, line = 2.5, cex = 2)
+mtext(text = "Reiduals", side = 2, line = 3, cex = 2)
+```
+
+---
+### Linear Splines
+
+- Plotting the estimated expected value of the average temperature of each city 
+against the data allowed us to see that  
+
+--
+
+  1. The assumptions we made about the city of Miami work relatively well as 
+  there is no obvious difference between the line and the median of the data.
+  
+--
+
+  1. The same assumptions applied to the city of San Francisco showed us that 
+  a model with more joints could be better, as there are some
+  months where the estimated mean is far from the median of the data.
+  
+--
+
+- It is important to note that for the city of San Francisco we could have found
+a better location for the two joints in the model in comparison to using the 
+same to points that we used for the city of Miami.
+
+--
+
+- Those nodes where chosen by looking at data from the city first. We have
+no reason to believe that the same joints would work equally well across cities.
+
+---
+### Linear Splines
+
+- The problem we would like to solve is: How can we find the best number of 
+joints and their position for a given data set?
+
+--
+
+- There are statistical methods built from the idea of maximizing the 
+probability of the data (Maximum Likelihood Estimation), that aim to solve this
+problem.
+
+--
+
+- These method allow us to choose the number and position of the joints for a 
+linear spline. Additionally, methods similar to the BIC allow us to penalize 
+models that add more joints than what is guaranteed by the data.
+
+--
+
+- In other words, the arbitrary choices that we made for this example can be 
+made using a more systematic approach.
+
+--
+
+- As a final note, notice that there is no reason why we can't combine the 
+splines approach with the non-linear transformations that we used to account
+for the average temperature data. 

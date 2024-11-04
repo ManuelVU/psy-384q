@@ -1,0 +1,108 @@
+---
+title: "In class activity 10"
+author: ""
+date: "2024-10-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Load the data `rotations.csv` and subset the data in a way that you only keep
+the trials that can help you answer the scientific question.
+
+**Ans:**
+
+2. Fit a linear model to participant's response time using the rotation angle 
+as a covariate.
+
+**Ans:**
+
+3. What is the interpretation of $\hat\beta_0$?
+
+**Ans:**
+
+4. What is the interpretation of $\hat\beta_1$?
+
+**Ans:**
+
+5. Calculate the $95%$ confidence interval for the intercept.
+
+**Ans:**
+
+6. Interpret the $95%$ confidence interval for the intercept.
+
+**Ans:**
+
+7. Calculate the $95%$ confidence interval for the slope associated with 
+rotation angle.
+
+**Ans:**
+
+8. Interpret the $95%$ confidence interval for the slope associated with 
+rotation angle.
+
+**Ans:**
+
+9. Test the Null hypothesis that $\beta_0 = 1520$ at an $\alpha$ level of 
+$0.01$.
+
+**Ans:**
+
+10. Test the Null hypothesis that $\beta_1 = 0$ at an $\alpha$ level of 
+$0.005$.
+
+**Ans:**
+
+11. Calculate the p-value for a t-test for the Null hypothesis $\beta_1 = 0$. Is
+the p-value lower or greater than $0.005$
+
+**Ans:**
+
+12. Create a new matrix named "X" with as many rows as observations in the 
+experiment, and two columns. Make all values in the first column be equal to 1, 
+and set the second column to be equal to the rotation angle of each observation
+
+**Ans:**
+
+13. Using the matrix from 12 estimate the variance of the regression line, 
+notice that first you need to estimate the variance of the errors 
+$\hat\sigma^2$ (question 13, `in-class-10.Rmd`).
+
+**Ans:**
+
+14. Estimate the $85\%$ confidence interval for the regression line.
+
+**Ans:**
+
+15. - Estimate the $85$ and $99\%$ confidence intervals using the new matrix and 
+make a plot that includes the regression line $\hat\mu$, the $85$ and $99\%$ 
+confidence intervals for the regression line (question 15, `in-class-10.Rmd`).
+
+**Ans:**
+
+16. Create a new matrix `x_0` that contains in the second column 10 different 
+rotation values. Choose values that are between 0 and 180
+
+**Ans:**
+
+17. Estimate the $85\%$ prediction interval.
+
+**Ans:**
+
+18. Estimate the $99\%$ prediction interval.
+
+**Ans:**
+
+19. Make a plot that allows you to compare the prediction interval and the 
+confidence interval for $\hat\mu$.
+
+**Ans:**
+
+
+
+
+
+
+

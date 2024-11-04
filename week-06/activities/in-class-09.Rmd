@@ -1,0 +1,72 @@
+---
+title: "In class activity 9"
+author: ""
+date: "2024-10-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Load the `cities.csv` data file and filter it using the piping function and 
+the `subset()` function to keep only the data for the city of "miami".
+
+**Ans:**
+
+2. Make a box plot of the average temperature in Miami by month. How many lines
+would you use in order to account for the data using a linear spline?
+
+**Ans:**
+
+3. Add a new variable to your data set named "id_jan_mar" that assigns the 
+value of the month minus one to observations in the month of January, February, 
+and March and 0 otherwise.
+
+**Ans:**
+
+4. Add a new variable to your data set named "id_mar_aug" that assigns the 
+value of month minus three to observations between the months of April and 
+August, and 0 otherwise.
+
+**Ans:**
+
+5. Add a new variable to your data set named "id_aug_dec" that assigns values 
+to the months of September, October, November, and December, that meet the 
+continuity assumption.
+
+**Ans:**
+
+6. Fit the linear model in class to the temperature data for the city of Miami.
+
+**Ans:**
+
+7. Make a plot of the average temperature of Miami by month and add the 
+estimated expected average temperature from the spline model.
+
+**Ans:**
+
+8. Make a plot of the residuals of the linear spline model for the average 
+temperature of Miami as a function of the month.
+
+**Ans:**
+
+9. Load the data for the city of San Francisco on a separate R object and add 
+the same three variables that we added to the city of Miami.
+
+**Ans:**
+
+10. Fit a linear model of the average temperature in the city of San Francisco
+as a function of the variables "id_jan_mar", "id_mar_aug", and "id_aug_dec".
+
+**Ans:**
+
+11. Plot of the estimated average temperature in the city of San Francisco
+as a function of the month according to the linear model in 10.
+
+**Ans:**
+
+12. Make a plot of the residuals of the linear spline model for the average 
+temperature of San Francisco as a function of the month.
+
+**Ans:**
