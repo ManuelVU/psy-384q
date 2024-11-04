@@ -249,7 +249,7 @@ simulate the non-constant variance problem.
 --
 
 - Generate a vector of variances named `variance_obs` using the following format
-$\mathrm{Var}(\epsilon_i\mid x) = 1.5 + \frac{x - 1}$ 
+$\mathrm{Var}(\epsilon_i\mid x) = 1.5 + (x - 1)$ 
 (question 2 `in-class-11.Rmd`).
 
 --
